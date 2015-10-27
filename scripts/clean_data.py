@@ -53,7 +53,7 @@ def clean_columns(df):
     """
     print("Cleaning Columns. This takes minutes due to a large number of string"
           " operations.")
-    
+
     df['zip_code'] = df['zip_code'].str.replace('x', '')
     df.zip_code = df.zip_code.astype('category')
     df = df[~df.id.str.contains('[A-z]', na=False)] # Remove ids with words
