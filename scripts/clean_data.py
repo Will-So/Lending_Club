@@ -1,18 +1,19 @@
 # coding=utf-8
 """
 Loads all lending Club CSV Files, Cleans the data for future analysis,
-adds some features and then saves it to pickle
+adds some features and then saves it to csv and optionally pickle.
+
+We save it to csv for use with Pickle. We save it to
 """
 
 import pandas as pd
 import numpy as np
 import os
-import sys
 import warnings
-import pdb
-warnings.simplefilter("ignore")
-DATA_DIR = '/Users/Will/Data/lending_club/'
+warnings.simplefilter("ignore") # Pandas is setting up annoying filters
 
+DATA_DIR = '/Users/Will/Data/lending_club/'
+PICKLE = True # Add option for Pickle because of categorical variables
 
 def _main():
     """
@@ -43,6 +44,10 @@ def _main():
     print("Saving to CSV")
     df.to_csv('../cleaned_df.csv')
 
+    if PICKLE:
+        print('saving to pickle')
+        df.to_pickle('../cleaned_df.pkl')
+
 
 def clean_columns(df):
     """
@@ -55,7 +60,7 @@ def clean_columns(df):
           " operations.")
 
     df['zip_code'] = df['zip_code'].str.replace('x', '')
-    df.zip_code = df.zip_code.astype('category')
+
     df = df[~df.id.str.contains('[A-z]', na=False)] # Remove ids with words
     df['id'] = df.id.astype(int)
 
@@ -75,7 +80,7 @@ def clean_columns(df):
     df.sub_grade = df.sub_grade.replace({'{}'.format(i):
                       unique_subgrades.index(i) for i in unique_subgrades})
 
-    df['grade'] = df['grade'].astype('category')
+
 
     df.issue_d = pd.to_datetime(df.issue_d)
     df.earliest_cr_line = pd.to_datetime(df.earliest_cr_line)
@@ -90,12 +95,33 @@ def clean_columns(df):
     # The following loans will not be useful for our analysis. See §2 in methodology
     df = df[~df.loan_status.str.contains("Does not meet the credit policy")]
 
+
+
+    df = category_processing(df)
+    print("Finished cleaning columns; creating additional features")
+
+
+    return df
+
+
+def category_processing(df):
+    """
+    Processes the necessary category information
+    :param df:
+    :return:
+    """
+
+    df.grade = df.grade.astype('category')
+    df.zip_code = df.zip_code.astype('category')
     df.purpose = df.purpose.astype('category')
     df.addr_state = df.addr_state.astype('category')
 
     # Can't make predictions based off of loans that cannot be reissued
     df.loan_status = df.loan_status.astype('category')
-    print("Finished cleaning columns; creating additional features")
+
+    df.loc[df.home_ownership.isin(['NONE', 'ANY']), 'home_ownership'] = 'OTHER'
+    df.home_ownership = df.home_ownership.cat.remove_unused_categories()
+    df.zip_code = df.zip_code.cat.remove_unused_categories()
 
     return df
 
@@ -114,6 +140,10 @@ def additional_features(df):
     df['ratio_mth_inc_all_payments'] = (df.installment + df.revol_bal * .02) / (df.annual_inc / 12)
     df['year_issued'] = df.issue_d.dt.year
     df['month_issued'] = df.issue_d.dt.month
+
+    df['earliest_cr_line'] = df.earliest_cr_line.dt.year # We are only interested in the year here
+    oldest_line = df.earliest_cr_line.min()
+    df.earliest_cr_line = df.earliest_cr_line.apply(lambda x: x - oldest_line)
 
     df['delinq']= 0
     df['delinq'][df.loan_status.isin(['Charged Off', 'Late (31-120 days)',

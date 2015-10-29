@@ -3,7 +3,18 @@
 This package identifies investment stratagies that fit custom investment profiles. The user specifies the amount of capital she is willing to invest and either her desired expected return or her maximum risk tolerance. 
 
 
-# Installations
+# Replication
+
+## Getting the data
+The full data is available to Lending Club members. The data can be downloaded [here](). **It is critical that you log in first as FICO scores are only available once logged in.**
+
+## The scripts
+You can run the `clean_data.py` script immediately to get the data into both csv and pickle formats. After that `model.py` will train the model. 
+
+Altera
+
+https://github.com/ThinkBigAnalytics/stampede/wiki/Make-and-Bash-Tips
+
 
 # Methodology
 ## Removing Certain Data Points
