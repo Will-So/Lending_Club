@@ -61,6 +61,7 @@ def clean_columns(df):
 
     df['zip_code'] = df['zip_code'].str.replace('x', '')
 
+    df.id = df.id.astype(str)
     df = df[~df.id.str.contains('[A-z]', na=False)] # Remove ids with words
     df['id'] = df.id.astype(int)
 

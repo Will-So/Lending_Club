@@ -13,6 +13,7 @@ import pandas as pd
 from sklearn.linear_model import LogisticRegressionCV
 from sklearn.cross_validation import train_test_split
 from sklearn.ensemble import RandomForestClassifier
+import numpy as np
 
 
 
@@ -25,20 +26,20 @@ def _main():
     default_recovery = percent_paid_if_default(df)
 
 
-
-
 def create_matrix(df):
     """
     Creates a matrix of dummies
     :param df: df from cleaned
     :return:
     """
-    y, X = dmatrices('delinq ~ C(zip_code) + loan_amnt*int_rate + installment + emp_length +'
-                     'C(home_ownership) + C(grade) + sub_grade + C(month_issued) + C(year_issued)'
-                     '+ C(purpose) + C(addr_state) + inq_last_6mths + pub_rec + revol_bal +open_acc+'
-                     'collections_12_mths_ex_med + delinq_2yrs + earliest_cr_line + fico_range_low'
-                     '+ ratio_mth_inc_all_payments',
-                     df, return_type='dataframe')
+    y, X = dmatrices('delinq ~  + loan_amnt + int_rate + installment + emp_length +'
+                 'C(home_ownership) + C(grade) + C(month_issued) + C(year_issued)'
+                 '+ C(purpose) + C(addr_state) + inq_last_6mths + pub_rec + revol_bal +open_acc+'
+                 'collections_12_mths_ex_med + delinq_2yrs + earliest_cr_line  + fico_range_low'
+                 '+ ratio_mth_inc_all_payments + annual_inc',
+                 df, return_type='dataframe')
+
+    y = np.ravel(y)
     return y, X
 
 
@@ -83,6 +84,7 @@ def calculate_roi(df, default_recovery):
     :param df:
     :return:
     """
+
 
 if __name__ == '__main__':
     sys.exit(_main())
