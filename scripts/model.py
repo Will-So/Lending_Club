@@ -1,3 +1,12 @@
+"""
+Creates all of the necessary steps for our mode.
+
+1. Trains a model
+2. Predicts the default rate given a model
+3. Predicts payment received in the case of default
+4. Predicts total ROI
+"""
+
 from patsy import dmatrices
 import sys
 import pandas as pd
@@ -12,6 +21,9 @@ def _main():
     df = pd.read_pickle('../cleaned_df.pkl')
     y, X = create_matrix(df)
     train_X, test_X, train_y, test_y = train_test_split(X, y, test_size=0.8)
+    fitted_model = fit_random_forest(train_X, train_y)
+    default_recovery = percent_paid_if_default(df)
+
 
 
 
@@ -54,8 +66,23 @@ def fit_random_forest(y, X):
     fitted_model = model_rf.fit(X, y)
 
 
+def percent_paid_if_default(df):
+    """
+    returns the percentage paid in case of
+    :param df:
+    :return:
+    """
+    default_df = df.assign(percentage_paid= df.total_pymnt/df.loan_amnt
+                      )[df.loan_status=='Charged Off']
+    return default_df.percentage_paid.mean()
 
 
+def calculate_roi(df, default_recovery):
+    """
+    Given a df containing both the chance of default and the amount recovered if the lender does default.
+    :param df:
+    :return:
+    """
 
 if __name__ == '__main__':
     sys.exit(_main())

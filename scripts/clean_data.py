@@ -107,6 +107,7 @@ def clean_columns(df):
 def category_processing(df):
     """
     Processes the necessary category information
+
     :param df:
     :return:
     """
