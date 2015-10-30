@@ -33,7 +33,7 @@ def create_matrix(df):
     :return:
     """
     y, X = dmatrices('delinq ~  + loan_amnt + int_rate + installment + emp_length +'
-                 'C(home_ownership) + C(grade) + C(month_issued) + C(year_issued)'
+                 'C(home_ownership) + C(grade) + '
                  '+ C(purpose) + C(addr_state) + inq_last_6mths + pub_rec + revol_bal +open_acc+'
                  'collections_12_mths_ex_med + delinq_2yrs + earliest_cr_line  + fico_range_low'
                  '+ ratio_mth_inc_all_payments + annual_inc',
