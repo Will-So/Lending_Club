@@ -5,12 +5,22 @@ remedy the differences.
 Some overlap with the `clean_data` module is inevitable.
 
 There are also plenty of opportunities to break this API
+
+Steps:
+    1. Load the Latest Notes from lending club `generate_completed_df()`
+    2. Rename and Process the Columns to be consistent with the previous dataset
+    3. Create the y, X matrix from the columns
+    4. Load the Model
+    5. Predict the Probabilities of default
+    6. Calculate the projected ROI into a dataframe
+    7. Return the df of
 """
 
 import sys
 import requests
 import os
 import pandas as pd
+import numpy as np
 import re
 import pickle
 
@@ -43,6 +53,7 @@ def generate_completed_df():
     print(df.head())
     pdb.set_trace() # Want to kill it here
 
+    top_predict_roi(df, predict_prob)
     if PICKLE == True:
         df.to_pickle('API_df')
 
@@ -76,10 +87,9 @@ def rename_columns(df):
 
     df.columns = [convert(i) for i in df.columns]
 
-    df = df.rename(columns={'collections12_mths_ex_med':
-    'collections_12_mths_ex_med', 'loan_amount': 'loan_amnt',
-    'delinq2_yrs': 'delinq_2yrs', 'inq_last6_mths':'inq_last_6mths',
-                       'addr_zip':'zip_code'})
+    df = df.rename(columns={'collections12_mths_ex_med': 'collections_12_mths_ex_med',
+                            'loan_amount': 'loan_amnt', 'delinq2_yrs': 'delinq_2yrs',
+                            'inq_last6_mths':'inq_last_6mths', 'addr_zip':'zip_code'})
 
     return df
 
@@ -105,6 +115,7 @@ def process_columns(df):
     df.home_ownership = df.home_ownership.cat.add_categories(['OTHER'])
 
     df.addr_state = df.addr_state.astype('category')
+
     with open('../state_list.pkl', 'rb') as picklefile:
         state_list = pickle.load(picklefile)
 
@@ -119,16 +130,29 @@ def process_columns(df):
     df.purpose = df.purpose.astype('category')
     df.purpose = df.purpose.cat.add_categories(new_purposes)
 
+    df.earliest_cr_line = df.earliest_cr_line.astype(np.datetime64).dt.year.astype(int)
+
 
     return df
 
 
 
-def predict_default():
+def top_predict_roi(df, probabilities):
     """
+    Given a df with default chance calculated, predicts the ROI of the note.
+
+    The ROI formula is calculated according to the following formula:
+    (1 - p(d)) * int_rate + p(d) * principal * (-0.55) // Need to work on this a bit more
+
 
     :return:
     """
+
+    df['default_prob'] = probabilities
+
+    loan_ids =  []
+
+    return ids
 
 
 def convert(name):
