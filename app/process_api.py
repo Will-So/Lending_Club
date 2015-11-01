@@ -47,17 +47,15 @@ def generate_completed_df():
     df = process_columns(df)
     y, X = create_matrix(df)
     model = joblib.load('../model/rf_model.pkl')
-
+    #pdb.set_trace() # Want to kill it here
     predict_prob = model.predict_proba(X)
-    print(len(y))
-    print(df.head())
-    pdb.set_trace() # Want to kill it here
 
-    top_predict_roi(df, predict_prob)
-    if PICKLE == True:
-        df.to_pickle('API_df')
 
-    return df
+    top_choices = top_predict_roi(X, predict_prob)
+    if PICKLE:
+        top_choices.to_pickle('../API_df')
+
+    #return df
 
 
 def load_latest_notes():
@@ -110,11 +108,35 @@ def process_columns(df):
     df.int_rate = df.int_rate / 100
     df.revol_util = df.revol_util / 100
 
-    df.home_ownership = df.home_ownership.astype('category')
-    # ^^ Unused category in the API. This will probably make my life harder in other ways
-    df.home_ownership = df.home_ownership.cat.add_categories(['OTHER'])
-
     df.addr_state = df.addr_state.astype('category')
+
+    # Extracts the year from earliest_cr_line column
+    df.earliest_cr_line = df.earliest_cr_line.astype(np.datetime64).dt.year.astype(int)
+
+    df = consolidate_categoricals(df)
+
+    return df
+
+
+def consolidate_categoricals(df):
+    """
+    Consolidates categories between the trained model and data gotten from the API
+
+    :param df:
+    :return: df
+    """
+
+    # Service to LC is rather new and unclear
+    df = df[df.addr_state != 'ND']
+    df.addr_state = df.addr_state.cat.remove_categories(['ND'])
+
+    # TODO: GENERALIZE THIS PATTERN
+    with open('../purpose_list.pkl', 'rb') as picklefile:
+        reference_purposes = pickle.load(picklefile)
+
+    new_purposes = reference_purposes - set(df.purpose.unique())
+    df.purpose = df.purpose.astype('category')
+    df.purpose = df.purpose.cat.add_categories(new_purposes)
 
     with open('../state_list.pkl', 'rb') as picklefile:
         state_list = pickle.load(picklefile)
@@ -123,41 +145,50 @@ def process_columns(df):
     new_states = set(state_list) - set(unique_states.get_values())
     df.addr_state = df.addr_state.cat.add_categories(new_states)
 
-    # TODO: Generalize this pattern
-    with open('../purpose_list.pkl', 'rb') as picklefile:
-        reference_purposes = pickle.load(picklefile)
-    new_purposes = reference_purposes - set(df.purpose.unique())
-    df.purpose = df.purpose.astype('category')
-    df.purpose = df.purpose.cat.add_categories(new_purposes)
-
-    df.earliest_cr_line = df.earliest_cr_line.astype(np.datetime64).dt.year.astype(int)
-
+    df.home_ownership = df.home_ownership.astype('category')
+    df.home_ownership = df.home_ownership.cat.add_categories(['OTHER'])
 
     return df
 
 
-
-def top_predict_roi(df, probabilities):
+def top_predict_roi(df, probabilities, percentage=.25):
     """
-    Given a df with default chance calculated, predicts the ROI of the note.
 
-    The ROI formula is calculated according to the following formula:
-    (1 - p(d)) * int_rate + p(d) * principal * (-0.55) // Need to work on this a bit more
+    :param df:
+    :param probabilities: Estimated default probability from SKLearn classification alrogithims.
+    N X 2 matrix where the first column the probability of not defaulting and the second is the
+    probability of defaulting.
 
-
+    :param percentage: percentage of Dataframes to select
     :return:
+
+    Notes
+    ---
+    - `estimated_roi` is calculated according to the following formula:
+    $(1 - p(default) * int\_rate + p(default) * amount\_lost / $ (55% * principal)
+
+    Example
+    ---
+    top_predict_roi(df, probabilities,
     """
 
+    probabilities =  [i[1] for i in probabilities]
+    #pdb.set_trace()
     df['default_prob'] = probabilities
 
-    loan_ids =  []
+    df['estimated_roi'] = ((1 - df.default_prob) * df.int_rate
+                                + (df.default_prob * (-.55 / df.loan_amnt)))
 
-    return ids
+    sorted_df = df.sort_values('estimated_roi', ascending=False)
+
+    top_choices = sorted_df[:int(len(sorted_df) * percentage)]
+    return top_choices
 
 
 def convert(name):
     """
-    Helper function to change camelCase to camel_case.
+    Helper function to change camelCase to camel_case. Function is just a first step,
+    additional munging is required.
 
     Copied from http://stackoverflow.com/questions/1175208/elegant-python-function-to-convert-camelcase-to-camel-case
     :param name:

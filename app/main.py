@@ -36,9 +36,28 @@ app = Flask(__name__)
 
 @app.route('/')
 def notes():
+    """
+    The
+    :return:
+    """
+
+    # TODO: Filter unimportant columns here.
     df = pd.read_pickle('../cleaned_df.pkl')[:20]
-    return render_template('table.html', data=df.to_html())
+    df_table = format_df(df)
+
+    return render_template('table.html', data=df_table)
 
 
+
+def format_df(df):
+    """
+    Formats the dataframe into a decent shape
+
+    :param df:
+    :return:
+    """
+    df_html = df.to_html().replace('class="dataframe"', 'class="table table-striped table-bordered table-condensed')
+
+    return df_html
 if __name__ == '__main__':
     app.run(debug=True)

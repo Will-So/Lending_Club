@@ -17,7 +17,6 @@ import numpy as np
 
 
 
-
 def _main():
     df = pd.read_pickle('../cleaned_df.pkl')
     y, X = create_matrix(df)
@@ -33,10 +32,9 @@ def create_matrix(df):
     :return:
     """
     y, X = dmatrices('delinq ~  + loan_amnt + int_rate + installment + emp_length +'
-                 'C(home_ownership) + C(grade) + '
-                 '+ C(purpose) + C(addr_state) + inq_last_6mths + pub_rec + revol_bal +open_acc+'
-                 'collections_12_mths_ex_med + delinq_2yrs + earliest_cr_line  + fico_range_low'
-                 '+ ratio_mth_inc_all_payments + annual_inc',
+                 'C(home_ownership) + C(grade) + C(purpose) + C(addr_state) + '
+                 'inq_last_6mths + pub_rec + revol_bal +open_acc+ collections_12_mths_ex_med'
+                 ' + delinq_2yrs + earliest_cr_line  + fico_range_low + ratio_mth_inc_all_payments + annual_inc',
                  df, return_type='dataframe')
 
     y = np.ravel(y)
@@ -53,6 +51,8 @@ def fit_logistic_regression(y, X):
     model_log = LogisticRegressionCV(cv=5, penalty='l2', verbose=1, max_iter=1000)
     fit = model_log.fit(X, y)
 
+    return fit
+
 
 
 def fit_random_forest(y, X):
@@ -66,6 +66,7 @@ def fit_random_forest(y, X):
                                       min_samples_split=50)
     fitted_model = model_rf.fit(X, y)
 
+    return fitted_model
 
 def percent_paid_if_default(df):
     """
