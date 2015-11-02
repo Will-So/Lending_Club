@@ -34,8 +34,18 @@ from model import create_matrix
 from clean_data import clean_columns, category_processing
 
 
-PICKLE = True
+PICKLE = False
 
+model_columns = ['loan_amnt', 'int_rate', 'grade',  'installment' , 'emp_length', 'home_ownership' ,
+                'purpose', 'addr_state' , 'inq_last_6mths', 'pub_rec' , 'revol_bal',
+                 'open_acc', 'collections_12_mths_ex_med','delinq_2yrs', 'annual_inc',
+                 'earliest_cr_line', 'fico_range_low', 'ratio_mth_inc_all_payments']
+
+unimportant_columns = ['addr_state', 'pub_rec', 'open_acc',
+                       'inq_last_6mths', 'collections_12_mths_ex_med']
+
+important_columns = [i for i in model_columns if i not in unimportant_columns]
+important_columns.insert(0, 'id') # Necessary to order the things later
 
 def generate_completed_df():
     """
@@ -47,15 +57,15 @@ def generate_completed_df():
     df = process_columns(df)
     y, X = create_matrix(df)
     model = joblib.load('../model/rf_model.pkl')
-    #pdb.set_trace() # Want to kill it here
     predict_prob = model.predict_proba(X)
 
+    top_choices = top_predict_roi(df, predict_prob)
+    pretty_top_choices = format_df(top_choices)
 
-    top_choices = top_predict_roi(X, predict_prob)
     if PICKLE:
-        top_choices.to_pickle('../API_df')
+        pretty_top_choices.to_pickle('../API_df')
 
-    #return df
+    return pretty_top_choices
 
 
 def load_latest_notes():
@@ -115,6 +125,8 @@ def process_columns(df):
 
     df = consolidate_categoricals(df)
 
+    df.emp_length = df.emp_length.fillna(1) # Many people do not yet have their
+
     return df
 
 
@@ -173,7 +185,6 @@ def top_predict_roi(df, probabilities, percentage=.25):
     """
 
     probabilities =  [i[1] for i in probabilities]
-    #pdb.set_trace()
     df['default_prob'] = probabilities
 
     df['estimated_roi'] = ((1 - df.default_prob) * df.int_rate
@@ -183,6 +194,20 @@ def top_predict_roi(df, probabilities, percentage=.25):
 
     top_choices = sorted_df[:int(len(sorted_df) * percentage)]
     return top_choices
+
+def format_df(df):
+    """
+    Formats the df into html with only the important rows
+
+    :return:
+    """
+    df = df[important_columns + ['default_prob' , 'estimated_roi']]
+
+    df =  df.rename(columns={'ratio_mth_inc_all_payments': 'Payments/Income',
+                                'fico_range_low':'fico'})
+
+
+    return df
 
 
 def convert(name):

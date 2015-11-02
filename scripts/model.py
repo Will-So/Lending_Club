@@ -16,6 +16,7 @@ from sklearn.ensemble import RandomForestClassifier
 import numpy as np
 
 
+SHOWN_COLUMNS = ['home_ownership', 'grade', 'purpose', '']
 
 def _main():
     df = pd.read_pickle('../cleaned_df.pkl')
@@ -31,11 +32,18 @@ def create_matrix(df):
     :param df: df from cleaned
     :return:
     """
+    import pdb; pdb.set_trace()
+    # y, X = dmatrices('delinq ~  + loan_amnt + int_rate + installment + emp_length +'
+    #              'C(home_ownership) + C(grade) + C(purpose) + C(addr_state) + '
+    #              'inq_last_6mths + pub_rec + revol_bal +open_acc+ collections_12_mths_ex_med'
+    #              ' + delinq_2yrs + earliest_cr_line  + fico_range_low + ratio_mth_inc_all_payments + annual_inc',
+    #              df, return_type='dataframe')
+
     y, X = dmatrices('delinq ~  + loan_amnt + int_rate + installment + emp_length +'
                  'C(home_ownership) + C(grade) + C(purpose) + C(addr_state) + '
-                 'inq_last_6mths + pub_rec + revol_bal +open_acc+ collections_12_mths_ex_med'
+                 'inq_last_6mths + pub_rec + revol_bal +open_acc + collections_12_mths_ex_med'
                  ' + delinq_2yrs + earliest_cr_line  + fico_range_low + ratio_mth_inc_all_payments + annual_inc',
-                 df, return_type='dataframe')
+                 df, return_type='dataframe', NA_action='raise')
 
     y = np.ravel(y)
     return y, X
