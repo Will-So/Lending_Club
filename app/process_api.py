@@ -13,7 +13,7 @@ Steps:
     4. Load the Model
     5. Predict the Probabilities of default
     6. Calculate the projected ROI into a dataframe
-    7. Return the df of
+    7. Return the df with the new fields
 """
 
 import sys
@@ -31,7 +31,6 @@ from sklearn.externals import joblib
 
 sys.path.append("../scripts")
 from model import create_matrix
-from clean_data import clean_columns, category_processing
 
 
 PICKLE = False
@@ -47,8 +46,10 @@ unimportant_columns = ['addr_state', 'pub_rec', 'open_acc',
 important_columns = [i for i in model_columns if i not in unimportant_columns]
 important_columns.insert(0, 'id') # Necessary to order the things later
 
+
 def generate_completed_df():
     """
+    Gathers the top choices from the currently available lending club notes.
 
     :return: dataframe that is processed and has the proper number of ROI features.
     """
@@ -110,13 +111,12 @@ def process_columns(df):
     :param df:
     :return:
     """
-    df.emp_length = df.emp_length / 12
-
+    df.emp_length /= 12
 
     df['ratio_mth_inc_all_payments'] = (df.installment + df.revol_bal * .02) / (df.annual_inc / 12)
 
-    df.int_rate = df.int_rate / 100
-    df.revol_util = df.revol_util / 100
+    df.int_rate /= 100
+    df.revol_util /= 100
 
     df.addr_state = df.addr_state.astype('category')
 
@@ -133,6 +133,12 @@ def process_columns(df):
 def consolidate_categoricals(df):
     """
     Consolidates categories between the trained model and data gotten from the API
+
+    # TODO: This can be somewhat automated The steps are as follows
+        1. Make sure that the item is a category now
+        2. Find the set difference between the 'complete' set and the incomplete set
+        3. (optional) remove data points that don't conform to the reference set
+        4. Add the category to it
 
     :param df:
     :return: df
@@ -160,6 +166,10 @@ def consolidate_categoricals(df):
     df.home_ownership = df.home_ownership.astype('category')
     df.home_ownership = df.home_ownership.cat.add_categories(['OTHER'])
 
+    df.grade = df.grade.astype('category')
+    new_grades = {'A', 'B', 'C', 'D', 'E', 'F', 'G'} - set(df.grade.unique())
+    df.grade = df.grade.cat.add_categories(new_grades)
+
     return df
 
 
@@ -177,7 +187,11 @@ def top_predict_roi(df, probabilities, percentage=.25):
     Notes
     ---
     - `estimated_roi` is calculated according to the following formula:
-    $(1 - p(default) * int\_rate + p(default) * amount\_lost / $ (55% * principal)
+    $(1 - p(default) * (int\_rate - fee)
+        + p(default) * percent\_lost / avg_\term $
+
+    This is meant to be more conservative than average. Picking the top 20% of loans is likely to have
+    a return of 13.5% rather than 10%
 
     Example
     ---
@@ -187,13 +201,14 @@ def top_predict_roi(df, probabilities, percentage=.25):
     probabilities =  [i[1] for i in probabilities]
     df['default_prob'] = probabilities
 
-    df['estimated_roi'] = ((1 - df.default_prob) * df.int_rate
-                                + (df.default_prob * (-.55 / df.loan_amnt)))
+    df['estimated_roi'] = ((1 - df.default_prob) * (df.int_rate - 0.0060)
+                                + (df.default_prob * ((-0.55 * df.loan_amnt) / df.loan_amnt) / 3.5))
 
     sorted_df = df.sort_values('estimated_roi', ascending=False)
 
     top_choices = sorted_df[:int(len(sorted_df) * percentage)]
     return top_choices
+
 
 def format_df(df):
     """
@@ -205,7 +220,6 @@ def format_df(df):
 
     df =  df.rename(columns={'ratio_mth_inc_all_payments': 'Payments/Income',
                                 'fico_range_low':'fico'})
-
 
     return df
 
