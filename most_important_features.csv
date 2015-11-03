@@ -1,13 +1,12 @@
 Feature, Importance (100= Most)
-Interest Rate, 100.0
-debt payments as % of income, 99.998174004750908
-Revolving Balance, 85.498197706312155
-Installment Amount, 74.107724896520793
-Loan Amount, 55.708428915496896
-Earliest Credit Line, 47.224535199232506
-Oldest Account, 41.750444199661217
-FICO Score, 39.305943434182446
-Employment Length, 19.059672050782019
-Issued in 2014, 15.839847040926678,
-
-
+Interest Rate,100
+debt payments as % of income,99.998174
+Annual Income,89
+Revolving Balance,85.49819771
+Installment Amount,74.1077249
+Loan Amount,55.70842892
+Earliest Credit Line,47.2245352
+Oldest Account,41.7504442
+FICO Score,39.30594343
+Employment Length,19.05967205
+Issued in 2014,15.83984704
