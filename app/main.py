@@ -35,6 +35,7 @@ estimated_roi = 0
 last_checked = 0
 last_submitted = 0
 
+
 @app.route('/')
 def dashboard():
     return render_template('dashboard.html', roi_floor=roi_floor,
@@ -42,6 +43,7 @@ def dashboard():
                            estimated_roi=estimated_roi,
                            last_checked=last_checked,
                            last_submitted=last_submitted)
+
 
 @app.route('/notes')
 def notes():
@@ -58,6 +60,12 @@ def notes():
 @app.route('/log')
 def log():
     pass
+
+
+@app.route('/vis')
+def vis():
+    pass
+
 
 
 
