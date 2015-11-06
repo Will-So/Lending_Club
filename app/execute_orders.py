@@ -15,7 +15,7 @@ import os
 import logging
 
 # Set Order Settings
-roi_floor = .13
+roi_floor = .10
 default_floor = .2
 amount = 25
 
@@ -31,9 +31,8 @@ portfolio_id = 65013027
 
 # Init Logging
 logger = logging.getLogger('lc_orders')
-logger.setLevel(logging.info)
+# logger.setLevel()
 log_handler = logging.FileHandler('../orders.log')
-log_handler.setLevel(logging.info)
 logger.addHandler(log_handler)
 
 # TODO: Verify that logging is working and then remove print statements
@@ -66,7 +65,7 @@ def _main():
         already_ordered.append(row[1])
 
     print("Placing orders for {} loans \n{} already ordered"
-            .format(len(good_ids) - len(set(already_ordered) - set(good_ids)), len(already_ordered)))
+            .format(len(set((good_ids)) - set(already_ordered)), len(already_ordered)))
 
     for id in good_ids:
         if id not in already_ordered and has_enough_cash():

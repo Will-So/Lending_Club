@@ -24,12 +24,11 @@ import numpy as np
 import re
 import pickle
 
-import pdb
-
 from sklearn.externals import joblib
 
 
 sys.path.append("../scripts")
+
 from model import create_matrix
 
 
@@ -146,7 +145,10 @@ def consolidate_categoricals(df):
 
     # Service to LC is rather new and unclear
     df = df[df.addr_state != 'ND']
-    df.addr_state = df.addr_state.cat.remove_categories(['ND'])
+    try:
+        df.addr_state = df.addr_state.cat.remove_categories(['ND'])
+    except ValueError: # Deals with case when ND never was a category
+        pass
 
     # TODO: GENERALIZE THIS PATTERN
     with open('../purpose_list.pkl', 'rb') as picklefile:
