@@ -3,6 +3,9 @@ CLI that is meant to run in the background and place orders hourly.
 
 Look into celery for doing this.
 
+TODO:
+    - Set up multi-user functionality. Need to use it for 4 accounts eventually.
+    - Have it be a CLI that will give the user name and then do everything else and set up logging in each case
 """
 
 from process_api import generate_completed_df
@@ -16,10 +19,10 @@ import logging
 
 # Set Order Settings
 roi_floor = .10
-default_floor = .2
+default_floor = .20
 amount = 25
 
-
+# init db
 conn = sqlite3.connect('../lc.sqlite')
 c = conn.cursor()
 
@@ -30,10 +33,7 @@ investor_id = 5809260
 portfolio_id = 65013027
 
 # Init Logging
-logger = logging.getLogger('lc_orders')
-# logger.setLevel()
-log_handler = logging.FileHandler('../orders.log')
-logger.addHandler(log_handler)
+logging.basicConfig(filename='../orders.log',level=logging.INFO)
 
 # TODO: Verify that logging is working and then remove print statements
 # TODO: Verify that
@@ -72,9 +72,10 @@ def _main():
              place_order(id)
         elif not has_enough_cash():
             print("No cash left")
-            logger.info("No Cash left")
+            logging.info("No Cash left")
             break
 
+    logging.info("Finished Ordering")
     print("Finished ordering")
 
 
@@ -85,7 +86,7 @@ def place_order(id):
     """
 
     print("Test Submitting Order for {}".format(id))
-    logger.info("Submitting Order for {}".format(id))
+    logging.info("Submitting Order for {}".format(id))
     now = arrow.utcnow().format('YYYY-MM-DDTHH:mm:ss')
 
     payload = {"aid": '{}'.format(investor_id),
@@ -98,7 +99,7 @@ def place_order(id):
                 ]}
 
     print(payload)
-    logger.info("This is the payload sent: {}".format(payload))
+    logging.info("This is the payload sent: {}".format(payload))
 
     r = requests.post('https://api.lendingclub.com/api/investor/v1/accounts/{}/orders'
                       .format(investor_id), json=payload,
@@ -112,9 +113,9 @@ def place_order(id):
                     .format(now, id, amount))
         conn.commit()
         
-        logger.info("Text for id {} : {}".format(id, r.text))
+        logging.info("Text for id {} : {}".format(id, r.text))
     else:
-        logger.info("Order for id {} failed. {}".format(id, r.status_code))
+        logging.info("Order for id {} failed. {}".format(id, r.status_code))
 
     time.sleep(1)
 
