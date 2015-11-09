@@ -33,6 +33,7 @@ from model import create_matrix
 
 
 PICKLE = False
+DEBUG = True
 
 model_columns = ['loan_amnt', 'int_rate', 'grade',  'installment' , 'emp_length', 'home_ownership' ,
                 'purpose', 'addr_state' , 'inq_last_6mths', 'pub_rec' , 'revol_bal',
@@ -50,13 +51,19 @@ def generate_completed_df():
     """
     Gathers the top choices from the currently available lending club notes.
 
+    We handle the unexpected values before creating the X matrix because the rows won't lone up otherwise
+
     :return: dataframe that is processed and has the proper number of ROI features.
     """
     df = load_latest_notes()
     df = rename_columns(df)
     df = process_columns(df)
+    df = handle_unexpected_values(df)
     y, X = create_matrix(df)
+
     model = joblib.load('../model/rf_model.pkl')
+    # This is a major breaking point of my model.
+    # import pdb; pdb.set_trace()
     predict_prob = model.predict_proba(X)
 
     top_choices = top_predict_roi(df, predict_prob)
@@ -209,6 +216,11 @@ def top_predict_roi(df, probabilities, percentage=.25):
     sorted_df = df.sort_values('estimated_roi', ascending=False)
 
     top_choices = sorted_df[:int(len(sorted_df) * percentage)]
+
+    if DEBUG:
+        top_choices.to_csv('../top_choices.csv')
+        sorted_df.to_csv('../sorted_df.csv')
+
     return top_choices
 
 
@@ -220,8 +232,19 @@ def format_df(df):
     """
     df = df[important_columns + ['default_prob' , 'estimated_roi']]
 
-    df =  df.rename(columns={'ratio_mth_inc_all_payments': 'Payments/Income',
+    df = df.rename(columns={'ratio_mth_inc_all_payments': 'Payments/Income',
                                 'fico_range_low':'fico'})
+
+    return df
+
+
+def handle_unexpected_values(df):
+    """
+    Handle various edge cases
+    :param X: Pandas dataframe of features
+    :return: dataframe with edge cases handled (usually removed)
+    """
+    df = df[df.ratio_mth_inc_all_payments != np.inf]
 
     return df
 

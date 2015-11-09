@@ -6,6 +6,7 @@ Look into celery for doing this.
 TODO:
     - Set up multi-user functionality. Need to use it for 4 accounts eventually.
     - Have it be a CLI that will give the user name and then do everything else and set up logging in each case
+    - Change debug to be module wide
 """
 
 from process_api import generate_completed_df
@@ -33,7 +34,8 @@ investor_id = 5809260
 portfolio_id = 65013027
 
 # Init Logging
-logging.basicConfig(filename='../orders.log',level=logging.INFO)
+logging.basicConfig(filename='../orders.log',level=logging.DEBUG)
+logging.getLogger("requests").setLevel(logging.WARNING)
 
 # TODO: Verify that logging is working and then remove print statements
 # TODO: Verify that
@@ -72,10 +74,10 @@ def _main():
              place_order(id)
         elif not has_enough_cash():
             print("No cash left")
-            logging.info("No Cash left")
+            logging.debug("No Cash left")
             break
 
-    logging.info("Finished Ordering")
+    logging.debug("Finished Ordering")
     print("Finished ordering")
 
 
@@ -86,7 +88,7 @@ def place_order(id):
     """
 
     print("Test Submitting Order for {}".format(id))
-    logging.info("Submitting Order for {}".format(id))
+    logging.debug("Submitting Order for {}".format(id))
     now = arrow.utcnow().format('YYYY-MM-DDTHH:mm:ss')
 
     payload = {"aid": '{}'.format(investor_id),
@@ -99,7 +101,7 @@ def place_order(id):
                 ]}
 
     print(payload)
-    logging.info("This is the payload sent: {}".format(payload))
+    logging.debug("This is the payload sent: {}".format(payload))
 
     r = requests.post('https://api.lendingclub.com/api/investor/v1/accounts/{}/orders'
                       .format(investor_id), json=payload,
@@ -113,13 +115,19 @@ def place_order(id):
                     .format(now, id, amount))
         conn.commit()
         
-        logging.info("Text for id {} : {}".format(id, r.text))
+        logging.debug("Text for id {} : {} at {}".format(id, r.text, now))
     else:
-        logging.info("Order for id {} failed. {}".format(id, r.status_code))
+        logging.debug("Order for id {} failed. {} at {}".format(id, r.status_code, now))
 
     time.sleep(1)
 
 
+# def place_order():
+#     """
+#     Will refactor place_order and generate_order in two different functions for debugging purposes
+
+#     :return:
+#     """
 
 
 def init_db():
