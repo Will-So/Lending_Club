@@ -30,12 +30,12 @@ def create_matrix(df):
     :param df: df from cleaned
     :return:
     """
-
+    # Temporarily changed to drp[
     y, X = dmatrices('delinq ~  + loan_amnt + int_rate + installment + emp_length +'
                  'C(home_ownership) + C(grade) + C(purpose) + C(addr_state) + '
                  'inq_last_6mths + pub_rec + revol_bal +open_acc + collections_12_mths_ex_med'
                  ' + delinq_2yrs + earliest_cr_line  + fico_range_low + ratio_mth_inc_all_payments + annual_inc',
-                 df, return_type='dataframe', NA_action='raise')
+                 df, return_type='dataframe', NA_action='drop')
 
     y = np.ravel(y)
     return y, X
@@ -54,7 +54,6 @@ def fit_logistic_regression(y, X):
     return fit
 
 
-
 def fit_random_forest(y, X):
     """
 
@@ -62,11 +61,12 @@ def fit_random_forest(y, X):
     :param X:
     :return:
     """
-    model_rf = RandomForestClassifier(n_estimators=50, oob_score=True, verbose=1, random_state=2143,
+    model_rf = RandomForestClassifier(n_estimators=200, oob_score=True, verbose=1, random_state=2143,
                                       min_samples_split=50)
     fitted_model = model_rf.fit(X, y)
 
     return fitted_model
+
 
 def percent_paid_if_default(df):
     """
@@ -78,13 +78,9 @@ def percent_paid_if_default(df):
                       )[df.loan_status=='Charged Off']
     return default_df.percentage_paid.mean()
 
+# Generate Confusion Matrix
+# SVM
 
-def calculate_roi(df, default_recovery):
-    """
-    Given a df containing both the chance of default and the amount recovered if the lender does default.
-    :param df:
-    :return:
-    """
 
 
 if __name__ == '__main__':

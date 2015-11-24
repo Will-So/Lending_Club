@@ -16,6 +16,7 @@ http://stackoverflow.com/questions/22180993/pandas-dataframe-display-on-a-webpag
 {{data | safe}}
 {% endblock %}
 """
+
 import os
 import pandas as pd
 
