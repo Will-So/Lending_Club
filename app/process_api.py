@@ -230,7 +230,9 @@ def format_df(df):
 
     :return:
     """
-    df = df[important_columns + ['default_prob' , 'estimated_roi']]
+    columns = df.columns
+    columns.insert(1, ['default_prob' , 'estimated_roi'])
+    df.columns = columns
 
     df = df.rename(columns={'ratio_mth_inc_all_payments': 'Payments/Income',
                                 'fico_range_low':'fico'})
