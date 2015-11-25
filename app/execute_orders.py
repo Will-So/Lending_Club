@@ -7,6 +7,7 @@ TODO:
     - Set up multi-user functionality. Need to use it for 4 accounts eventually.
     - Have it be a CLI that will give the user name and then do everything else and set up logging in each case
     - Change debug to be module wide
+    - Add a cash reserves option
 """
 
 from process_api import generate_completed_df
@@ -22,6 +23,7 @@ import logging
 roi_floor = .12
 default_floor = .20
 amount = 25
+cash_reserves = 0 # Desired level of cash balance
 
 # init db
 conn = sqlite3.connect('../lc.sqlite')
@@ -108,7 +110,7 @@ def has_enough_cash():
                     headers=headers)
 
     cash = r.json()['availableCash']
-    return True if cash > 25 else False
+    return True if cash > cash_reserves + amount else False
 
 
 # Only has to be run at setup.
