@@ -35,16 +35,6 @@ from model import create_matrix
 PICKLE = False
 DEBUG = True
 
-model_columns = ['loan_amnt', 'int_rate', 'grade',  'installment' , 'emp_length', 'home_ownership' ,
-                'purpose', 'addr_state' , 'inq_last_6mths', 'pub_rec' , 'revol_bal',
-                 'open_acc', 'collections_12_mths_ex_med','delinq_2yrs', 'annual_inc',
-                 'earliest_cr_line', 'fico_range_low', 'ratio_mth_inc_all_payments']
-
-unimportant_columns = ['addr_state', 'pub_rec', 'open_acc',
-                       'inq_last_6mths', 'collections_12_mths_ex_med']
-
-important_columns = [i for i in model_columns if i not in unimportant_columns]
-important_columns.insert(0, 'id') # Necessary to order the things later
 
 
 def generate_completed_df():
@@ -226,13 +216,29 @@ def top_predict_roi(df, probabilities, percentage=.25):
 
 def format_df(df):
     """
-    Formats the df into html with only the important rows
+    Formats the df into html with only the important columns
 
     :return:
     """
-    columns = df.columns
-    columns.insert(1, ['default_prob' , 'estimated_roi'])
-    df.columns = columns
+
+    model_columns = ['loan_amnt', 'int_rate', 'grade',  'installment' , 'emp_length', 'home_ownership' ,
+                'purpose', 'addr_state' , 'inq_last_6mths', 'pub_rec' , 'revol_bal',
+                 'open_acc', 'collections_12_mths_ex_med','delinq_2yrs', 'annual_inc',
+                 'earliest_cr_line', 'fico_range_low', 'ratio_mth_inc_all_payments',
+                     'estimated_roi', 'default_prob']
+
+    unimportant_columns = ['addr_state', 'pub_rec', 'open_acc',
+                           'inq_last_6mths', 'collections_12_mths_ex_med']
+
+    important_columns = [i for i in model_columns if i not in unimportant_columns]
+    important_columns.insert(0, 'id') # Necessary to order the things later
+
+    df = df[important_columns]
+
+    # Hacky way to change the order of the columns
+    cols = df.columns.tolist()
+    cols = cols[0:1] + cols[-2:] + cols[1:-2] # [0:1] to prevent coercion to str
+    df = df[cols]
 
     df = df.rename(columns={'ratio_mth_inc_all_payments': 'Payments/Income',
                                 'fico_range_low':'fico'})
