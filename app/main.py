@@ -77,9 +77,7 @@ def log_to_table(dir):
     html = '<table> \n'
     with open(dir) as logfile:
         for row in reversed(list(logfile)):
-            # print(row)
             html += '<tr> <td>' + row + '</td></tr> \n'
-            print(html)
 
     html += '</table>'
     return html
