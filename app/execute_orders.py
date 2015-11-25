@@ -39,18 +39,6 @@ logging.getLogger("requests").setLevel(logging.WARNING)
 logging.getLogger('werkzeug').setLevel(logging.WARNING)
 
 
-def has_enough_cash():
-    """
-
-    :return:
-    """
-    r = requests.get('https://api.lendingclub.com/api/investor/v1/accounts/{}/availablecash'.format(investor_id),
-                    headers=headers)
-
-    cash = r.json()['availableCash']
-    return True if cash > 25 else False
-
-
 def _main():
     """
     Predicts which loans will perform the best and then places orders on those if
@@ -79,7 +67,7 @@ def _main():
 
 def place_order(id):
     """
-    Places an order and appends the ordered loan
+    Generates the order payload and places an order and appends the ordered loan
 
     """
     now = arrow.utcnow().format('YYYY-MM-DDTHH:mm:ss')
@@ -112,21 +100,25 @@ def place_order(id):
     time.sleep(1)
 
 
-# def place_order():
-#     """
-#     Will refactor place_order and generate_order in two different functions for debugging purposes
+def has_enough_cash():
+    """
+    Checks if I currently have money in my lending club account.
+    """
+    r = requests.get('https://api.lendingclub.com/api/investor/v1/accounts/{}/availablecash'.format(investor_id),
+                    headers=headers)
 
-#     :return:
-#     """
+    cash = r.json()['availableCash']
+    return True if cash > 25 else False
 
 
+# Only has to be run at setup.
+# TODO: Get this into a general setup script.
 def init_db():
     conn = sqlite3.connect('lc.sqlite')
     c = conn.cursor()
     c.execute('''CREATE TABLE orders (date text, id INTEGER PRIMARY KEY, amount REAL) ''')
     conn.commit()
     conn.close()
-
 
 if __name__ == '__main__':
     sys.exit(_main())
