@@ -37,16 +37,16 @@ last_checked = 0
 last_submitted = 0
 
 
-@app.route('/')
-def dashboard():
-    return render_template('dashboard.html', roi_floor=roi_floor,
-                           loans_available=loans_available,
-                           estimated_roi=estimated_roi,
-                           last_checked=last_checked,
-                           last_submitted=last_submitted)
+# @app.route('/')
+# def dashboard():
+#     return render_template('dashboard.html', roi_floor=roi_floor,
+#                            loans_available=loans_available,
+#                            estimated_roi=estimated_roi,
+#                            last_checked=last_checked,
+#                            last_submitted=last_submitted)
 
 
-@app.route('/notes')
+@app.route('/') # Will be /notes soon
 def notes():
     """
     The
@@ -60,12 +60,29 @@ def notes():
 
 @app.route('/log')
 def log():
-    pass
+    return render_template('table.html',data=log_to_table('../orders.log'))
 
 
 @app.route('/vis')
 def vis():
     pass
+
+
+def log_to_table(dir):
+    """
+    Turns the log file into a table in reverse order
+    :param dir: the log file
+    :return:
+    """
+    html = '<table> \n'
+    with open(dir) as logfile:
+        for row in reversed(list(logfile)):
+            # print(row)
+            html += '<tr> <td>' + row + '</td></tr> \n'
+            print(html)
+
+    html += '</table>'
+    return html
 
 
 
