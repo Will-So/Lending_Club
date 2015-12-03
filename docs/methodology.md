@@ -23,3 +23,6 @@ For this first iteration, I have taken the following steps:
 Lending Club loan) to income. 
 - The model think's lending club does a very good job deciding who to lend to. 
 
+# General Thoughts on Modeling Risk
+1. Have a Great Recession model that shows how the lending club notes return would change based on everything else. 
+2. Matching might be a good strategy as well. KNN 
