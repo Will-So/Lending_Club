@@ -62,6 +62,9 @@ def generate_completed_df():
 
 
 def load_latest_notes():
+    """
+    Retrieves currently available notes from the Lending Club API
+    """
     credentials = os.environ['LENDING_CLUB_API']
 
     headers = {'Authorization': credentials}
@@ -78,10 +81,13 @@ def load_latest_notes():
 
 def rename_columns(df):
     """
-    renames certain columns and
+    renames certain columns and fills in certain static values
+    (e.g., current month, year)
     """
     df['year_issued'] = 2015
-    df['month_issued'] = arrow.utcnow().month
+    current_month = arrow.utcnow().month
+    assert type(current_month) == int
+    df['month_issued'] = current_month
     df['delinq'] = 2 # Needs to be something for the create_matrix method; discarded later
 
     df.columns = [convert(i) for i in df.columns]
@@ -98,8 +104,8 @@ def process_columns(df):
     Deals with the non-trivial inehrent incompatibility between the lending club API and the
     lending club dataset. (yes you read that right).
 
-    :param df:
-    :return:
+    :param df: Pandas DataFrame
+    :return: Pandas Dataframe that is more compatible with the historical dataset
     """
     df.emp_length /= 12
 
@@ -130,18 +136,18 @@ def consolidate_categoricals(df):
         3. (optional) remove data points that don't conform to the reference set
         4. Add the category to it
 
-    :param df:
+    :param df: pd.DataFrame populated with API data from Lending Club
     :return: df
     """
 
-    # Service to LC is rather new and unclear
+    # Service to LC is rather new and not included in the model so remove it
     df = df[df.addr_state != 'ND']
     try:
         df.addr_state = df.addr_state.cat.remove_categories(['ND'])
     except ValueError: # Deals with case when ND never was a category
         pass
 
-    # TODO: GENERALIZE THIS PATTERN
+    # Need to make sure all purposes are in the catories
     with open('../purpose_list.pkl', 'rb') as picklefile:
         reference_purposes = pickle.load(picklefile)
 
@@ -149,6 +155,7 @@ def consolidate_categoricals(df):
     df.purpose = df.purpose.astype('category')
     df.purpose = df.purpose.cat.add_categories(new_purposes)
 
+    # Verify all states in categories
     with open('../state_list.pkl', 'rb') as picklefile:
         state_list = pickle.load(picklefile)
 
@@ -156,9 +163,11 @@ def consolidate_categoricals(df):
     new_states = set(state_list) - set(unique_states.get_values())
     df.addr_state = df.addr_state.cat.add_categories(new_states)
 
+    # Make 'other' category even though no longer used
     df.home_ownership = df.home_ownership.astype('category')
     df.home_ownership = df.home_ownership.cat.add_categories(['OTHER'])
 
+    # Make sure all grades present
     df.grade = df.grade.astype('category')
     new_grades = {'A', 'B', 'C', 'D', 'E', 'F', 'G'} - set(df.grade.unique())
     df.grade = df.grade.cat.add_categories(new_grades)
@@ -168,14 +177,14 @@ def consolidate_categoricals(df):
 
 def top_predict_roi(df, probabilities, percentage=.25):
     """
+    Predicts ROI of notes and returns the best
 
     :param df:
     :param probabilities: Estimated default probability from SKLearn classification alrogithims.
     N X 2 matrix where the first column the probability of not defaulting and the second is the
     probability of defaulting.
-
     :param percentage: percentage of Dataframes to select
-    :return:
+    :return: Pandas Dataframe with the top choices
 
     Notes
     ---
@@ -184,11 +193,11 @@ def top_predict_roi(df, probabilities, percentage=.25):
         + p(default) * percent\_lost / avg_\term $
 
     This is meant to be more conservative than average. Picking the top 20% of loans is likely to have
-    a return of 13.5% rather than 10%
+    a return of 13.5% rather than 10%. Rank-order is preserved.
 
     Example
     ---
-    top_predict_roi(df, probabilities,
+    >>> top_predict_roi(df, probabilities) # DOCTEST: +SKIP
     """
 
     probabilities =  [i[1] for i in probabilities]
@@ -210,9 +219,8 @@ def top_predict_roi(df, probabilities, percentage=.25):
 
 def format_df(df):
     """
-    Formats the df into html with only the important columns
+    Formats the df so important columns come first.
 
-    :return:
     """
 
     model_columns = ['loan_amnt', 'int_rate', 'grade',  'installment' , 'emp_length', 'home_ownership' ,
@@ -243,8 +251,9 @@ def format_df(df):
 def handle_unexpected_values(df):
     """
     Handle various edge cases
-    :param X: Pandas dataframe of features
-    :return: dataframe with edge cases handled (usually removed)
+
+    :param df: Pandas dataframe of features. (Usually X)
+    :return: dataframe with edge cases handled
     """
     df = df[df.ratio_mth_inc_all_payments != np.inf]
 
