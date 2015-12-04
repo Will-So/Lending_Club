@@ -23,19 +23,16 @@ import pandas as pd
 import numpy as np
 import re
 import pickle
+import arrow
 
 from sklearn.externals import joblib
 
 
 sys.path.append("../scripts")
-
 from model import create_matrix
-
 
 PICKLE = False
 DEBUG = True
-
-
 
 def generate_completed_df():
     """
@@ -52,8 +49,7 @@ def generate_completed_df():
     y, X = create_matrix(df)
 
     model = joblib.load('../model/rf_model.pkl')
-    # This is a major breaking point of my model.
-    # import pdb; pdb.set_trace()
+
     predict_prob = model.predict_proba(X)
 
     top_choices = top_predict_roi(df, predict_prob)
@@ -82,13 +78,11 @@ def load_latest_notes():
 
 def rename_columns(df):
     """
-
-    :param df:
-    :return:
+    renames certain columns and
     """
     df['year_issued'] = 2015
-    df['month_issued'] = 11
-    df['delinq'] = 2 # Needs to be something for the create_matrix method
+    df['month_issued'] = arrow.utcnow().month
+    df['delinq'] = 2 # Needs to be something for the create_matrix method; discarded later
 
     df.columns = [convert(i) for i in df.columns]
 
