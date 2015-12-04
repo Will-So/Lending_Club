@@ -4,4 +4,5 @@
 4. Put the data into its own directory. I didn't forese at the beginning that this project would **generate** so much 
 data but this is what ended up happening:
 ![](https://dl.dropboxusercontent.com/u/97258109/Screens/S3584.png)
-
+5. Consider using double bar-charts when communicating 2 numbers
+6. When presenting, tell either the story of the process or the path the user takes to use the project.
