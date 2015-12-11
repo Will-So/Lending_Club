@@ -20,7 +20,7 @@ import os
 import logging
 
 # Set Order Settings
-roi_floor = .12
+roi_floor = .10
 default_floor = .20
 amount = 25
 cash_reserves = 0 # Desired level of cash balance
@@ -87,8 +87,7 @@ def place_order(id):
     logging.debug("This is the payload sent: {}".format(payload))
 
     r = requests.post('https://api.lendingclub.com/api/investor/v1/accounts/{}/orders'
-                      .format(investor_id), json=payload,
-                      headers= headers)
+                      .format(investor_id), json=payload, headers= headers)
 
     if r.status_code == 200:
         c.execute("""INSERT INTO orders VALUES ("{0}", {1}, {2})"""
@@ -106,10 +105,11 @@ def has_enough_cash():
     """
     Checks if I currently have money in my lending club account.
     """
-    r = requests.get('https://api.lendingclub.com/api/investor/v1/accounts/{}/availablecash'.format(investor_id),
-                    headers=headers)
+    r = requests.get('https://api.lendingclub.com/api/investor/v1/accounts/{}/availablecash'
+                     .format(investor_id), headers=headers)
 
     cash = r.json()['availableCash']
+    logging.debug(cash)
     return True if cash > cash_reserves + amount else False
 
 

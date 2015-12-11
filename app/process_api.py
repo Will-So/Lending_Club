@@ -24,15 +24,14 @@ import numpy as np
 import re
 import pickle
 import arrow
-
 from sklearn.externals import joblib
-
 
 sys.path.append("../scripts")
 from model import create_matrix
 
 PICKLE = False
 DEBUG = True
+
 
 def generate_completed_df():
     """
@@ -70,7 +69,7 @@ def load_latest_notes():
     headers = {'Authorization': credentials}
 
     r = requests.get('https://api.lendingclub.com/api/investor/v1/loans/listing?showAll=true',
-                headers=headers)
+                     headers=headers)
 
     assert r.status_code == 200
 
@@ -88,13 +87,13 @@ def rename_columns(df):
     current_month = arrow.utcnow().month
     assert type(current_month) == int
     df['month_issued'] = current_month
-    df['delinq'] = 2 # Needs to be something for the create_matrix method; discarded later
+    df['delinq'] = 2  # Needs to be something for the create_matrix method; discarded later
 
     df.columns = [convert(i) for i in df.columns]
 
     df = df.rename(columns={'collections12_mths_ex_med': 'collections_12_mths_ex_med',
                             'loan_amount': 'loan_amnt', 'delinq2_yrs': 'delinq_2yrs',
-                            'inq_last6_mths':'inq_last_6mths', 'addr_zip':'zip_code'})
+                            'inq_last6_mths': 'inq_last_6mths', 'addr_zip': 'zip_code'})
 
     return df
 
@@ -121,7 +120,7 @@ def process_columns(df):
 
     df = consolidate_categoricals(df)
 
-    df.emp_length = df.emp_length.fillna(1) # Many people do not yet have their
+    df.emp_length = df.emp_length.fillna(1)  # Many people do not yet have their
 
     return df
 
@@ -144,7 +143,7 @@ def consolidate_categoricals(df):
     df = df[df.addr_state != 'ND']
     try:
         df.addr_state = df.addr_state.cat.remove_categories(['ND'])
-    except ValueError: # Deals with case when ND never was a category
+    except ValueError:  # Deals with case when ND never was a category
         pass
 
     # Need to make sure all purposes are in the catories
@@ -200,11 +199,11 @@ def top_predict_roi(df, probabilities, percentage=.25):
     >>> top_predict_roi(df, probabilities) # DOCTEST: +SKIP
     """
 
-    probabilities =  [i[1] for i in probabilities]
+    probabilities = [i[1] for i in probabilities]
     df['default_prob'] = probabilities
 
     df['estimated_roi'] = ((1 - df.default_prob) * (df.int_rate - 0.0060)
-                                + (df.default_prob * ((-0.55 * df.loan_amnt) / df.loan_amnt) / 3.5))
+                           + (df.default_prob * ((-0.55 * df.loan_amnt) / df.loan_amnt) / 3.5))
 
     sorted_df = df.sort_values('estimated_roi', ascending=False)
 
@@ -223,27 +222,27 @@ def format_df(df):
 
     """
 
-    model_columns = ['loan_amnt', 'int_rate', 'grade',  'installment' , 'emp_length', 'home_ownership' ,
-                'purpose', 'addr_state' , 'inq_last_6mths', 'pub_rec' , 'revol_bal',
-                 'open_acc', 'collections_12_mths_ex_med','delinq_2yrs', 'annual_inc',
-                 'earliest_cr_line', 'fico_range_low', 'ratio_mth_inc_all_payments',
+    model_columns = ['loan_amnt', 'int_rate', 'grade', 'installment', 'emp_length', 'home_ownership',
+                     'purpose', 'addr_state', 'inq_last_6mths', 'pub_rec', 'revol_bal',
+                     'open_acc', 'collections_12_mths_ex_med', 'delinq_2yrs', 'annual_inc',
+                     'earliest_cr_line', 'fico_range_low', 'ratio_mth_inc_all_payments',
                      'estimated_roi', 'default_prob']
 
     unimportant_columns = ['addr_state', 'pub_rec', 'open_acc',
                            'inq_last_6mths', 'collections_12_mths_ex_med']
 
     important_columns = [i for i in model_columns if i not in unimportant_columns]
-    important_columns.insert(0, 'id') # Necessary to order the things later
+    important_columns.insert(0, 'id')  # Necessary to order the things later
 
     df = df[important_columns]
 
     # Hacky way to change the order of the columns
     cols = df.columns.tolist()
-    cols = cols[0:1] + cols[-2:] + cols[1:-2] # [0:1] to prevent coercion to str
+    cols = cols[0:1] + cols[-2:] + cols[1:-2]  # [0:1] to prevent coercion to str
     df = df[cols]
 
     df = df.rename(columns={'ratio_mth_inc_all_payments': 'Payments/Income',
-                                'fico_range_low':'fico'})
+                            'fico_range_low': 'fico'})
 
     return df
 
