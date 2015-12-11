@@ -4,10 +4,9 @@ Predicts the default rate of loans and automatically order the model's favorite 
 to invest and either her desired expected return or her maximum risk tolerance. 
 
 # Overview
-//todo make into bullet points
-- The `app` directory has two major entry points.
- - `execute_orders.py` will order the model's favorite loans. `process_api` supports this process. 
- - `main.py` renders a webpage that allows the user to view currently available loans and its expected rate of return.
+ - The `app` directory has two major entry points.
+    - `execute_orders.py` will order the model's favorite loans. `process_api` supports this process. 
+    - `main.py` renders a webpage that allows the user to view currently available loans and its expected rate of return.
  
 ![](https://dl.dropboxusercontent.com/u/97258109/Screens/S3616.png)
 
