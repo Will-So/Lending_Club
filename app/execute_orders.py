@@ -45,7 +45,6 @@ def _main():
     """
     Predicts which loans will perform the best and then places orders on those if
     there is enough cash and if the loan has not already been ordered.
-
     """
     df = generate_completed_df()
     good_ids = df.id[(df.estimated_roi > roi_floor) & (df.default_prob < default_floor)]
@@ -70,7 +69,6 @@ def _main():
 def place_order(id):
     """
     Generates the order payload and places an order and appends the ordered loan
-
     """
     now = arrow.utcnow().format('YYYY-MM-DDTHH:mm:ss')
     logging.debug("Submitting Order for {} at {}".format(id, now))
@@ -113,9 +111,13 @@ def has_enough_cash():
     return True if cash > cash_reserves + amount else False
 
 
-# Only has to be run at setup.
 # TODO: Get this into a general setup script.
 def init_db():
+    """
+    Initializes a SQL database that keeps track of documents already odered.
+
+    Only needs to be run on initial setup
+    """
     conn = sqlite3.connect('lc.sqlite')
     c = conn.cursor()
     c.execute('''CREATE TABLE orders (date text, id INTEGER PRIMARY KEY, amount REAL) ''')

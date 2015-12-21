@@ -27,10 +27,9 @@ def _main():
 def create_matrix(df):
     """
     Creates a matrix of dummies
-    :param df: df from cleaned
-    :return:
+    :param df: cleaned pd.DataFrame()
+    :return: y: Vector of targets ; X: vector of features
     """
-    # Temporarily changed to drp[
     y, X = dmatrices('delinq ~  + loan_amnt + int_rate + installment + emp_length +'
                  'C(home_ownership) + C(grade) + C(purpose) + C(addr_state) + '
                  'inq_last_6mths + pub_rec + revol_bal +open_acc + collections_12_mths_ex_med'
@@ -43,10 +42,7 @@ def create_matrix(df):
 
 def fit_logistic_regression(y, X):
     """
-
-    :param y:
-    :param X:
-    :return:
+    Fites a logistic regression
     """
     model_log = LogisticRegressionCV(cv=5, penalty='l2', verbose=1, max_iter=1000)
     fit = model_log.fit(X, y)
@@ -56,10 +52,7 @@ def fit_logistic_regression(y, X):
 
 def fit_random_forest(y, X):
     """
-
-    :param y:
-    :param X:
-    :return:
+    Fits a random forest
     """
     model_rf = RandomForestClassifier(n_estimators=200, oob_score=True, verbose=1, random_state=2143,
                                       min_samples_split=50)
@@ -70,9 +63,8 @@ def fit_random_forest(y, X):
 
 def percent_paid_if_default(df):
     """
-    returns the percentage paid in case of
-    :param df:
-    :return:
+    returns the percentage paid in case of default.
+
     """
     default_df = df.assign(percentage_paid= df.total_pymnt/df.loan_amnt
                       )[df.loan_status=='Charged Off']

@@ -15,12 +15,8 @@ warnings.simplefilter("ignore") # Pandas is setting up annoying filters
 DATA_DIR = '/Users/Will/Data/lending_club/'
 PICKLE = True # Add option for Pickle because of categorical variables
 
+
 def _main():
-    """
-
-
-    :return:
-    """
     print("Loading Data")
     df = pd.DataFrame()
     for csv in os.listdir(DATA_DIR)[1:]:
@@ -53,8 +49,8 @@ def clean_columns(df):
     """
     Changes columns to appropriate types and removes certain annoying rows.
 
-    :param df: Dataframe
-    :return:
+    :param df: pd.Dataframe
+    :return: pd.DataFrame with cleaned columns
     """
     print("Cleaning Columns. This takes minutes due to a large number of string"
           " operations.")
@@ -81,8 +77,7 @@ def clean_columns(df):
     df.sub_grade = df.sub_grade.replace({'{}'.format(i):
                       unique_subgrades.index(i) for i in unique_subgrades})
 
-
-
+    # Turn dates into datetime objects
     df.issue_d = pd.to_datetime(df.issue_d)
     df.earliest_cr_line = pd.to_datetime(df.earliest_cr_line)
     df.last_credit_pull_d = pd.to_datetime(df.last_credit_pull_d)
@@ -96,21 +91,15 @@ def clean_columns(df):
     # The following loans will not be useful for our analysis. See §2 in methodology
     df = df[~df.loan_status.str.contains("Does not meet the credit policy")]
 
-
-
     df = category_processing(df)
     print("Finished cleaning columns; creating additional features")
-
 
     return df
 
 
 def category_processing(df):
     """
-    Processes the necessary category information
-
-    :param df:
-    :return:
+    Ensure that all categories are present in the data provided by API.
     """
 
     df.grade = df.grade.astype('category')
@@ -132,7 +121,7 @@ def additional_features(df):
     """
     Creates additional features that may be important
 
-    :param df:
+    :param df: pd.DataFrame
     :return: df with added columns.
     """
     print("Adding new features")
