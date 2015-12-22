@@ -10,7 +10,7 @@ TODO:
     - Add a cash reserves option
 """
 
-from process_api import generate_completed_df
+from app.process_api import generate_completed_df
 import sqlite3
 import sys
 import arrow
@@ -57,9 +57,10 @@ def _main():
             .format(len(set((good_ids)) - set(already_ordered)), len(already_ordered)))
 
     for id in good_ids:
-        if id not in already_ordered and has_enough_cash():
+        funds_available = has_enough_cash() # Called once to avoid dirty logs
+        if id not in already_ordered and funds_available:
              place_order(id)
-        elif not has_enough_cash():
+        elif not funds_available:
             logging.debug("No Cash left")
             break
 

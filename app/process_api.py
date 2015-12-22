@@ -27,7 +27,7 @@ import arrow
 from sklearn.externals import joblib
 
 sys.path.append("../scripts")
-from model import create_matrix
+from scripts.model import create_matrix
 
 PICKLE = False
 DEBUG = True
