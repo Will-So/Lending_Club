@@ -21,14 +21,13 @@ import os
 import pandas as pd
 
 from flask import Flask, render_template, request
-from execute_orders import roi_floor
 
 from process_api import generate_completed_df
 
 app = Flask(__name__)
 
 df = generate_completed_df()
-df_html =  df.to_html().replace('class="dataframe"',
+df_html = df.to_html().replace('class="dataframe"',
                                    'class="table table-striped table-bordered table-condensed')
 
 loans_available = 0

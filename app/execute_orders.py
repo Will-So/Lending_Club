@@ -10,7 +10,6 @@ TODO:
     - Add a cash reserves option
 """
 
-from app.process_api import generate_completed_df
 import sqlite3
 import sys
 import arrow
@@ -18,6 +17,10 @@ import time
 import requests
 import os
 import logging
+
+sys.path.append('..')
+from process_api import generate_completed_df
+
 
 # Set Order Settings
 roi_floor = .10

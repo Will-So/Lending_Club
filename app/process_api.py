@@ -27,7 +27,7 @@ import arrow
 from sklearn.externals import joblib
 
 sys.path.append("../scripts")
-from scripts.model import create_matrix
+from model import create_matrix
 
 PICKLE = False
 DEBUG = True
@@ -241,7 +241,7 @@ def format_df(df):
     cols = cols[0:1] + cols[-2:] + cols[1:-2]  # [0:1] to prevent coercion to str
     df = df[cols]
 
-    df = df.rename(columns={'ratio_mth_inc_all_payments': 'Payments/Income',
+    df = df.rename(columns={'ratio_mth_inc_all_payments': 'payments_to_income',
                             'fico_range_low': 'fico'})
 
     return df
