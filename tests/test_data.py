@@ -8,18 +8,21 @@ import py.test
 import pandas as pd
 import engarde.decorators as ed
 import numpy as np
+import sys
 from hypothesis import given, assume, example, strategies as st
 
 
-from app.process_api import generate_completed_df
+sys.path.append('../app')
+from process_api import generate_completed_df
 
 test_df = generate_completed_df()
 
 
 dtypes = dict(estimated_roi=float, default_prob=float, loan_amnt=float, int_rate=float,
               grade='category', installment=float, emp_length=float, home_ownership='category',
-              purpose='category', revol_bal=float, delinq_2yrs=float, annual_inc=float,
-              earliest_cr_line=int, fico=int, payments_to_income=float64)
+              purpose='category', revol_bal=float, delinq_2yrs=int, annual_inc=float,
+              earliest_cr_line=int, fico=int, payments_to_income=float)
+
 
 def test_inf_values():
     """
@@ -30,7 +33,7 @@ def test_inf_values():
     When processing the data from the API, the values that could cause np.inf should be removed
     automatically.
     """
-    assert not any(np.isinf(test_df))
+    assert all(np.isfinite(test_df.select_dtypes(include=['float64', 'int64'])))
 
 
 def test_categories():
@@ -46,11 +49,11 @@ def test_dtypes_and_shape():
     return df
 
 
-@given(col=st.floats())
-@example(col=0.0) # So that it is tested every time.
-def test_valid_inputs(col):
-    """Verufues that
-    """
-    df = generate_completed_df()
-    assume(col >= 0)
-    assert(all(df['Payments/Income'] > 0)) # Payments/Income depends on annual_income.
+# @given(col=st.floats())
+# @example(col=0.0) # So that it is tested every time.
+# def test_valid_inputs(col):
+#     """Verufues that
+#     """
+#     df = generate_completed_df()
+#     assume(col >= 0)
+#     assert(all(df['Payments/Income'] > 0)) # Payments/Income depends on annual_income.
