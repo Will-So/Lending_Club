@@ -7,7 +7,7 @@ c = conn.cursor()
 
 test_id = 23123213123123213
 test_amount = 10000
-now = arrow.utcnow().format('')
+now = arrow.utcnow().format('YYYY-MM-DDTHH:mm:ss')
 
 # TODO: Make a long series of test dataframes
 
@@ -18,10 +18,12 @@ def test_sql_write(init_db):
     :return:
     """
     c = conn.cursor()
-    c.execute("""INSERT INTO orders VALUES ("{0}", {1}, {2})""".format(now, test_id, test_amount))
+    c.execute("""INSERT INTO orders VALUES ('{0}', {1}, {2})""".format(now, test_id, test_amount))
     conn.commit()
     c.execute("SELECT * FROM orders")
-    print(c.fetchall())
+    result = c.fetchall()
+    assert result == [(str(now), test_id, test_amount)]
+
 
 
 
