@@ -40,6 +40,10 @@ def test_categories():
     """
     Ensures that all categories are added to API even if not present in the API Data.
     """
+    assert len(test_df.home_ownership.cat.categories) == 4
+    assert len(test_df.purpose.cat.categories) == 14
+    assert len(test_df.grade.cat.categories) == 7
+
 
 
 @ed.is_shape((None, 16))
