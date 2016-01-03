@@ -3,6 +3,9 @@ Tests whether the `process_api` module can handle weird values being fed to the 
 
 An interesting alternative is to run the tests as the dataframe is loaded.
 
+TODO:
+- Test bad edge cases as well. Set it up so it is programmtically done.
+
 """
 import py.test
 import pandas as pd
@@ -15,7 +18,15 @@ from hypothesis import given, assume, example, strategies as st
 sys.path.append('../app')
 from process_api import generate_completed_df
 
-test_df = generate_completed_df()
+TEST_API = True
+BAD_DATA = True
+
+if TEST_API:
+    test_df = generate_completed_df()
+elif BAD_DATA:
+    test_df = pd.read_csv('bad_data.csv')
+else:
+    test_df = pd.read_csv('good_data.csv')
 
 
 dtypes = dict(estimated_roi=float, default_prob=float, loan_amnt=float, int_rate=float,
