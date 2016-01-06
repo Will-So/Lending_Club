@@ -63,6 +63,16 @@ def test_dtypes_and_shape():
     df = generate_completed_df()
     return df
 
+def test_results_reasonable():
+    """
+    Verifies that various aspects of the dataset are reasonable
+    """
+    assert .05 < all(test_df.int_rate) < .4 # Interest rates should be within a reasonable range
+    assert all(test_df.annual_inc) >= 0
+
+    # TODO compare ROI to interest rate in each row
+
+
 
 # @given(col=st.floats())
 # @example(col=0.0) # So that it is tested every time.
