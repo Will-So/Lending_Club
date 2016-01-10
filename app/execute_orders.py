@@ -15,10 +15,10 @@ import sys
 import arrow
 import time
 import requests
-import os
 import logging
 
 sys.path.append('..')
+import config
 from process_api import generate_completed_df
 
 
@@ -28,15 +28,14 @@ default_floor = .20
 amount = 25
 cash_reserves = 0 # Desired level of cash balance
 
-# init db
+# Connect to db
 conn = sqlite3.connect('../lc.sqlite')
 c = conn.cursor()
 
 # Set Lending Club variables
-credentials = os.environ['LENDING_CLUB_API']
-headers = {'Authorization': credentials}
-investor_id = 5809260
-portfolio_id = 65013027
+headers = {'Authorization': config.main_config['credentials']}
+investor_id = config.main_config['investor_id']
+portfolio_id = config.main_config['portfolio_id']
 
 # Init Logging
 logging.basicConfig(filename='../orders.log',level=logging.DEBUG)
@@ -127,6 +126,9 @@ def init_db():
     c.execute('''CREATE TABLE orders (date text, id INTEGER PRIMARY KEY, amount REAL) ''')
     conn.commit()
     conn.close()
+
+
+
 
 if __name__ == '__main__':
     sys.exit(_main())
