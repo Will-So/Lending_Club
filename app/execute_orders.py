@@ -128,7 +128,5 @@ def init_db():
     conn.close()
 
 
-
-
 if __name__ == '__main__':
     sys.exit(_main())
