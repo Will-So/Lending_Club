@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 CLI that is meant to run in the background and place orders hourly.
 
