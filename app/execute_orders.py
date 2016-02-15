@@ -24,7 +24,7 @@ from process_api import generate_completed_df
 
 
 # Set Order Settings
-roi_floor = .10
+roi_floor = .14
 default_floor = .20
 amount = 25
 cash_reserves = 0 # Desired level of cash balance

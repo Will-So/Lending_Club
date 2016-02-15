@@ -189,7 +189,7 @@ def top_predict_roi(df, probabilities, percentage=.25):
     ---
     - `estimated_roi` is calculated according to the following formula:
     $(1 - p(default) * (int\_rate - fee)
-        + p(default) * percent\_lost / avg_\term $
+        + p(default) * percent\_lost / avg\_term $
 
     This is meant to be more conservative than average. Picking the top 20% of loans is likely to have
     a return of 13.5% rather than 10%. Rank-order is preserved.
