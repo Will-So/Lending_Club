@@ -9,31 +9,19 @@ Steps:
 from bokeh.plotting import Figure, show, output_server
 
 from bokeh.models.widgets import Slider, Select, TextInput, CheckboxButtonGroup
-from bokeh.models import HoverTool, ColumnDataSource, HBox, VBoxForm
+from bokeh.models import HoverTool, ColumnDataSource, HBox, VBoxForm, Axis
 from bokeh.io import curdoc
 
 import sys
 sys.path.append('..')
 
 from app.process_api import generate_completed_df
-# print(sys.path)
 
-# from lc.app.process_api import generate_completed_df
 
 df = generate_completed_df()
 
-# p = figure(title="Predictions for Currently Available Notes")
-
-
-def generate_aggregated_roi(selected_notes):
-    """
-    Generates the aggregated ROI of the selected notes
-
-    :return:
-    """
-
-
-#output_server("")
+# Truncate very extreme values
+df.annual_inc = df.annual_inc.clip(lower=0, upper=200000)
 
 # Set Constants
 axis_map = {'Expected ROI': 'estimated_roi', 'Estimated Default %': 'default_prob',
@@ -65,12 +53,13 @@ source = ColumnDataSource(data=dict(x=[], y=[], color=[], title=[], year=[], rev
 
 hover = HoverTool(tooltips=[('Interest Rate', '@interest_rate'),
                             ('Payments / Income', '@payments_to_income'),
-                            ('FICO', '@fico'), ('Grade', '@grade')
+                            ('FICO', '@fico')
                             ])
 
-p = Figure(plot_height=400, plot_width=600, title='', toolbar_location=None, tools=[hover])
-# p.circle(x='x', y='y', source=source, size=7, color='color', line_color=None, fill_alpha='alpha')
+p = Figure(plot_height=600, plot_width=800, title='', toolbar_location=None, tools=[hover])
 p.circle(x='x', y='y', source=source, size=7, color='blue', line_color=None)
+yaxis = p.select(dict(type=Axis, layout='left'))[0]
+yaxis.formatter.use_scientific = False
 
 def select_notes():
     """
@@ -103,18 +92,19 @@ def update(attrname, old, new):
     p.title = '{} notes selected'.format(len(selected))
 
     # TODO Add more to this
-    # Multiple by 100
+    # Multiple by 100 and change to int for clarity
     source.data = dict(x=selected[x_name], y=selected[y_name],
-                       fico=selected['fico'], annual_income=selected.annual_inc,
-                       payments_to_income=selected.payments_to_income * 100,
-                       interest_rate=selected.int_rate * 100, grade=selected.grade)
+                       fico=selected['fico'], annual_income=selected.annual_inc.astype(int),
+                       payments_to_income=(selected.payments_to_income * 100).astype(int),
+                       interest_rate=(selected.int_rate * 100).astype(int))
 
 controls = [min_income, max_default, minimum_roi, x_axis, y_axis]
 for control in controls:
     control.on_change('value', update)
 
-inputs = HBox(VBoxForm(*controls), width=200)
+inputs = HBox(VBoxForm(*controls), width=300)
+
 
 update(None, None, None)
 
-curdoc().add_root(HBox(inputs, p, width=800))
+curdoc().add_root(HBox(inputs, p, width=1100))
