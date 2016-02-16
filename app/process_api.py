@@ -250,6 +250,8 @@ def format_df(df):
     df = df.rename(columns={'ratio_mth_inc_all_payments': 'payments_to_income',
                             'fico_range_low': 'fico'})
 
+    df = df.set_index('id')
+
     return df
 
 
