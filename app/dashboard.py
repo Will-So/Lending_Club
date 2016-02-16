@@ -44,7 +44,7 @@ axis_map = {'Expected ROI': 'estimated_roi', 'Estimated Default %': 'default_pro
             }
 
 assert [i in df.columns  for i in axis_map.values()] # Check tomake sure all values are valid
-grades = list('ABCDEFG')
+# grades = list('ABCDEFG')
 
 # Create Controls
 minimum_roi = Slider(title="Minimum Estimated Return on Investment", value=.1, start=0.00,
@@ -54,7 +54,7 @@ max_default = Slider(title="Maximum Default Rate", value=.35, start=0.02, end=0.
 min_income = Slider(title="Minimum Annual Income (thousands)", value=50, start=0, end=200,
                     step=1)
 
-grades = CheckboxButtonGroup(labels=grades, active=[0, 1])
+# grades = CheckboxButtonGroup(labels=grades, active=[0, 1])
 
 x_axis = Select(title="X Axis", options=sorted(axis_map.keys()), value='Expected ROI')
 y_axis = Select(title='Y Axis', options=sorted(axis_map.keys()), value='Estimated Default %')
@@ -63,12 +63,12 @@ y_axis = Select(title='Y Axis', options=sorted(axis_map.keys()), value='Estimate
 # Create Column Data Source that will be used by the plot
 source = ColumnDataSource(data=dict(x=[], y=[], color=[], title=[], year=[], revenue=[]))
 
-hover = HoverTool(tooltips=[('Interest Rate', '@Interest ate'),
-                            ('Payments / Income', '@Payments / Income'),
-                            ('FICO', '@fico')
+hover = HoverTool(tooltips=[('Interest Rate', '@interest_rate'),
+                            ('Payments / Income', '@payments_to_income'),
+                            ('FICO', '@fico'), ('Grade', '@grade')
                             ])
 
-p = Figure(plot_height=800, plot_width=1000, title='', toolbar_location=None, tools=[hover])
+p = Figure(plot_height=400, plot_width=600, title='', toolbar_location=None, tools=[hover])
 # p.circle(x='x', y='y', source=source, size=7, color='color', line_color=None, fill_alpha='alpha')
 p.circle(x='x', y='y', source=source, size=7, color='blue', line_color=None)
 
@@ -103,15 +103,18 @@ def update(attrname, old, new):
     p.title = '{} notes selected'.format(len(selected))
 
     # TODO Add more to this
+    # Multiple by 100
     source.data = dict(x=selected[x_name], y=selected[y_name],
-                       fico=selected['fico'])
+                       fico=selected['fico'], annual_income=selected.annual_inc,
+                       payments_to_income=selected.payments_to_income * 100,
+                       interest_rate=selected.int_rate * 100, grade=selected.grade)
 
-controls = [x_axis, y_axis, min_income, max_default, minimum_roi]
+controls = [min_income, max_default, minimum_roi, x_axis, y_axis]
 for control in controls:
     control.on_change('value', update)
 
-inputs = HBox(VBoxForm(*controls), width=300)
+inputs = HBox(VBoxForm(*controls), width=200)
 
 update(None, None, None)
 
-curdoc().add_root(HBox(inputs, p, width=1300))
+curdoc().add_root(HBox(inputs, p, width=800))
