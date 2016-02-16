@@ -18,16 +18,20 @@ Steps:
 
 import sys
 import requests
-import os
 import pandas as pd
 import numpy as np
 import re
 import pickle
 import arrow
 from sklearn.externals import joblib
+import os
 
-sys.path.append("../scripts")
-from model import create_matrix
+file_dir = os.path.dirname(os.path.abspath(__file__)) # Still one level too far
+data_dir =  os.path.abspath(os.path.join(file_dir, os.pardir))
+
+sys.path.append("..")
+# from lc.scripts.model import create_matrix
+from scripts.model import create_matrix
 
 PICKLE = False
 DEBUG = True
@@ -47,7 +51,8 @@ def generate_completed_df():
     df = handle_unexpected_values(df)
     y, X = create_matrix(df)
 
-    model = joblib.load('../model/rf_model.pkl')
+    # model = joblib.load('lc/model/rf_model.pkl')
+    model = joblib.load(os.path.join(data_dir, 'model/rf_model.pkl'))
 
     predict_prob = model.predict_proba(X)
 
@@ -147,7 +152,8 @@ def consolidate_categoricals(df):
         pass
 
     # Need to make sure all purposes are in the catories
-    with open('../purpose_list.pkl', 'rb') as picklefile:
+    # Solution. OS.curdur
+    with open(os.path.join(data_dir + '/purpose_list.pkl'), 'rb') as picklefile:
         reference_purposes = pickle.load(picklefile)
 
     new_purposes = reference_purposes - set(df.purpose.unique())
@@ -155,7 +161,7 @@ def consolidate_categoricals(df):
     df.purpose = df.purpose.cat.add_categories(new_purposes)
 
     # Verify all states in categories
-    with open('../state_list.pkl', 'rb') as picklefile:
+    with open(os.path.join(data_dir, 'state_list.pkl'), 'rb') as picklefile:
         state_list = pickle.load(picklefile)
 
     unique_states = df.addr_state.unique()
