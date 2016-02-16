@@ -6,16 +6,14 @@ Steps:
     # Informationa bout selected items
     http://stackoverflow.com/questions/27856348/bokeh-get-information-about-points-that-have-been-selected
 """
-from bokeh.plotting import Figure, show, output_server
-
-from bokeh.models.widgets import Slider, Select, TextInput, CheckboxButtonGroup
-from bokeh.models import HoverTool, ColumnDataSource, HBox, VBoxForm, Axis
-from bokeh.io import curdoc
-
 import sys
 sys.path.append('..')
-
 from app.process_api import generate_completed_df
+
+from bokeh.plotting import Figure
+from bokeh.models.widgets import Slider, Select
+from bokeh.models import HoverTool, ColumnDataSource, HBox, VBoxForm, Axis
+from bokeh.io import curdoc
 
 
 df = generate_completed_df()
@@ -32,7 +30,6 @@ axis_map = {'Expected ROI': 'estimated_roi', 'Estimated Default %': 'default_pro
             }
 
 assert [i in df.columns  for i in axis_map.values()] # Check tomake sure all values are valid
-# grades = list('ABCDEFG')
 
 # Create Controls
 minimum_roi = Slider(title="Minimum Estimated Return on Investment", value=.1, start=0.00,
@@ -42,34 +39,40 @@ max_default = Slider(title="Maximum Default Rate", value=.35, start=0.02, end=0.
 min_income = Slider(title="Minimum Annual Income (thousands)", value=50, start=0, end=200,
                     step=1)
 
-# grades = CheckboxButtonGroup(labels=grades, active=[0, 1])
+max_payments_to_income = Slider(title='Maximum Payments/Income Ratio', value=.40,
+                            start=0.00, end=0.40, step=0.01)
 
-x_axis = Select(title="X Axis", options=sorted(axis_map.keys()), value='Expected ROI')
-y_axis = Select(title='Y Axis', options=sorted(axis_map.keys()), value='Estimated Default %')
+x_axis = Select(title="X Axis", options=sorted(axis_map.keys()), value='Annual Income')
+y_axis = Select(title='Y Axis', options=sorted(axis_map.keys()), value='Expected ROI')
 
 
 # Create Column Data Source that will be used by the plot
 source = ColumnDataSource(data=dict(x=[], y=[], color=[], title=[], year=[], revenue=[]))
 
-hover = HoverTool(tooltips=[('Interest Rate', '@interest_rate'),
-                            ('Payments / Income', '@payments_to_income'),
+hover = HoverTool(tooltips=[('Interest Rate', '@interest_rate%'),
+                            ('Payments / Income', '@payments_to_income%'),
                             ('FICO', '@fico')
                             ])
 
 p = Figure(plot_height=600, plot_width=800, title='', toolbar_location=None, tools=[hover])
-p.circle(x='x', y='y', source=source, size=7, color='blue', line_color=None)
+p.circle(x='x', y='y', source=source, size=7, color='blue', line_color=None, alpha=0.8)
+
+# Remove scientific notation
 yaxis = p.select(dict(type=Axis, layout='left'))[0]
 yaxis.formatter.use_scientific = False
 
+p.xaxis[0].formatter = yaxis.formatter
+
+
 def select_notes():
     """
-    TODO: Still need to include grade
+    Filters the dataframe into notes that satisfy all constraints in web app
     """
-    #grade_val = grades.value
     selected = df[
         (df.annual_inc >= min_income.value * 1000) &
         (df.default_prob <= max_default.value) &
-        (df.estimated_roi >= minimum_roi.value)
+        (df.estimated_roi >= minimum_roi.value) &
+        (df.payments_to_income <= max_payments_to_income.value)
     ]
 
     return selected
@@ -77,11 +80,8 @@ def select_notes():
 
 def update(attrname, old, new):
     """
+    Updates the plot according to the criteria
 
-    :param attrname:
-    :param old:
-    :param new:
-    :return:
     """
     selected = select_notes()
     x_name = axis_map[x_axis.value]
@@ -98,12 +98,11 @@ def update(attrname, old, new):
                        payments_to_income=(selected.payments_to_income * 100).astype(int),
                        interest_rate=(selected.int_rate * 100).astype(int))
 
-controls = [min_income, max_default, minimum_roi, x_axis, y_axis]
+controls = [min_income, max_default, minimum_roi, max_payments_to_income, y_axis, x_axis]
 for control in controls:
     control.on_change('value', update)
 
 inputs = HBox(VBoxForm(*controls), width=300)
-
 
 update(None, None, None)
 
