@@ -26,7 +26,8 @@ def _main():
 
 def create_matrix(df):
     """
-    Creates a matrix of dummies
+    Creates the matrix that is used for model fitting and model prediction.
+
     :param df: cleaned pd.DataFrame()
     :return: y: Vector of targets ; X: vector of features
     """

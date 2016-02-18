@@ -21,7 +21,7 @@ def _main():
     df = pd.DataFrame()
     for csv in os.listdir(DATA_DIR)[1:]:
         df = df.append(pd.read_csv(DATA_DIR + csv, header=True))
-
+    # TODO: Don't want important columns in this workflow
     important_columns = ['total_pymnt', 'zip_code', 'member_id', 'id', 'loan_amnt', 'int_rate',
          'installment', 'emp_length', 'home_ownership', 'grade', 'sub_grade', 'emp_title',
          'issue_d', 'loan_status', 'annual_inc', 'verification_status', 'purpose', 'addr_state',

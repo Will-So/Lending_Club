@@ -1,7 +1,7 @@
 # -*- coding: utf8 -*-
 import os
 
-default_roi_floor = .10
+default_roi_floor = .14
 default_amount = 25
 default_default_floor = .2
 
