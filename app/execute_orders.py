@@ -17,20 +17,27 @@ import arrow
 import time
 import requests
 import logging
+import os
 
 sys.path.append('..')
 import config
 from process_api import generate_completed_df
 
+FILE_DIR = os.path.dirname(os.path.realpath(__file__))
+print(FILE_DIR)
+SQL_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__),".."))
+print(SQL_DIR)
+
 
 # Set Order Settings
-roi_floor = .14
+roi_floor = .13
 default_floor = .20
 amount = 25
 cash_reserves = 0 # Desired level of cash balance
 
 # Connect to db
-conn = sqlite3.connect('../lc.sqlite')
+conn  = sqlite3.connect(os.path.join(SQL_DIR, 'lc.sqlite'))
+# conn = sqlite3.connect('../lc.sqlite')
 c = conn.cursor()
 
 # Set Lending Club variables
@@ -39,7 +46,8 @@ investor_id = config.main_config['investor_id']
 portfolio_id = config.main_config['portfolio_id']
 
 # Init Logging
-logging.basicConfig(filename='../orders.log',level=logging.DEBUG)
+logging.basicConfig(filename='../orders.log',level=logging.DEBUG,
+                    format='%(asctime)s %(message)s')
 logging.getLogger("requests").setLevel(logging.WARNING)
 logging.getLogger('werkzeug').setLevel(logging.WARNING)
 
@@ -49,25 +57,34 @@ def _main():
     Predicts which loans will perform the best and then places orders on those if
     there is enough cash and if the loan has not already been ordered.
     """
+    count = 0
     df = generate_completed_df()
-    good_ids = df.id[(df.estimated_roi > roi_floor) & (df.default_prob < default_floor)]
+    # import pdb; pdb.set_trace()
 
-    already_ordered = []
+    good_ids = set(df.ix[(df.estimated_roi > roi_floor) &
+                     (df.default_prob < default_floor)].index)
+
+    already_ordered = set()
     for row in c.execute('SELECT * FROM orders'):
-        already_ordered.append(row[1])
+        already_ordered.add(row[1])
+
+    good_ids = good_ids - already_ordered
 
     logging.debug("Placing orders for {} loans \n{} already ordered"
-            .format(len(set((good_ids)) - set(already_ordered)), len(already_ordered)))
+            .format(len(set((good_ids)) - set(already_ordered)), len(already_ordered))) # TODO Consider making a new_orders thing with the set.
 
     for id in good_ids:
         funds_available = has_enough_cash() # Called once to avoid dirty logs
         if id not in already_ordered and funds_available:
-             place_order(id)
+            count += 1
+            place_order(id)
         elif not funds_available:
             logging.debug("No Cash left")
             break
+        elif id in already_ordered:
+            logging.info("{} Was previously ordered".format(id))
 
-    logging.debug("Finished Ordering")
+    logging.debug("Finished Ordering ordered {} notes \n".format(count))
 
 
 def place_order(id):
