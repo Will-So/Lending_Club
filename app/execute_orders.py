@@ -30,10 +30,11 @@ print(SQL_DIR)
 
 
 # Set Order Settings
-roi_floor = .13
+roi_floor = .125
 default_floor = .20
 amount = 25
 cash_reserves = 0 # Desired level of cash balance
+three_years_only = True
 
 # Connect to db
 conn  = sqlite3.connect(os.path.join(SQL_DIR, 'lc.sqlite'))
@@ -60,6 +61,9 @@ def _main():
     count = 0
     df = generate_completed_df()
     # import pdb; pdb.set_trace()
+
+    if three_years_only:
+        df = df[df.term == 36]
 
     good_ids = set(df.ix[(df.estimated_roi > roi_floor) &
                      (df.default_prob < default_floor)].index)
