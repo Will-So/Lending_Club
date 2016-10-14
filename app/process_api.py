@@ -10,8 +10,8 @@ Steps:
     1. Load the Latest Notes from lending club `generate_completed_df()`
     2. Rename and Process the Columns to be consistent with the previous dataset
     3. Create the y, X matrix from the columns
-    4. Load the Model
-    5. Predict the Probabilities of default
+    4a Load the Model
+    2. Predict the Probabilities of default
     6. Calculate the projected ROI into a dataframe
     7. Return the df with the new fields
 """
@@ -27,10 +27,13 @@ from sklearn.externals import joblib
 import os
 
 file_dir = os.path.dirname(os.path.abspath(__file__)) # Still one level too far
-data_dir =  os.path.abspath(os.path.join(file_dir, os.pardir))
-
+data_dir = os.path.abspath(os.path.join(file_dir, os.pardir))
+print(data_dir)
 sys.path.append("..")
+sys.path.append(data_dir)
+print(sys.path)
 # from lc.scripts.model import create_matrix
+# import pdb; pdb.set_trace()
 from scripts.model import create_matrix
 
 PICKLE = False
@@ -75,7 +78,6 @@ def load_latest_notes():
 
     r = requests.get('https://api.lendingclub.com/api/investor/v1/loans/listing?showAll=true',
                      headers=headers)
-
     assert r.status_code == 200
 
     loans = r.json()['loans']
@@ -232,7 +234,7 @@ def format_df(df):
                      'purpose', 'addr_state', 'inq_last_6mths', 'pub_rec', 'revol_bal',
                      'open_acc', 'collections_12_mths_ex_med', 'delinq_2yrs', 'annual_inc',
                      'earliest_cr_line', 'fico_range_low', 'ratio_mth_inc_all_payments',
-                     'estimated_roi', 'default_prob']
+                     'estimated_roi', 'default_prob', 'term']
 
     unimportant_columns = ['addr_state', 'pub_rec', 'open_acc',
                            'inq_last_6mths', 'collections_12_mths_ex_med']
