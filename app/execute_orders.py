@@ -116,14 +116,15 @@ def place_order(good_ids):
     r = requests.post('https://api.lendingclub.com/api/investor/v1/accounts/{}/orders'
                       .format(investor_id), json=payload, headers= headers)
 
-    if r.status_code == 200:
-        c.execute("""INSERT INTO orders VALUES ("{0}", {1}, {2})"""
+    for id in good_ids:
+        if r.status_code == 200:
+            c.execute("""INSERT INTO orders VALUES ("{0}", {1}, {2})"""
                     .format(now, id, amount))
-        conn.commit()
+            conn.commit()
         
-        logging.debug("SUCCESS: for id {} : {} at {} successful".format(id, r.text, now))
-    else:
-        logging.debug("Order for id {} failed. {} at {}".format(id, r.status_code, now))
+            logging.debug("SUCCESS: for id {} : {} at {} successful".format(id, r.text, now))
+        else:
+            logging.debug("Order for id {} failed. {} at {}".format(id, r.status_code, now))
 
     time.sleep(1)
 
