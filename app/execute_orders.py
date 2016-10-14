@@ -101,7 +101,7 @@ def place_order(good_ids):
     Generates the order payload and places an order and appends the ordered loan
     """
     now = arrow.utcnow().format('YYYY-MM-DDTHH:mm:ss')
-    logging.debug("Submitting Order for {} at {}".format(id, now))
+    logging.debug("Submitting Order for {} at {}".format(good_ids, now))
 
     payload = {"aid": '{}'.format(investor_id),
                "orders": [
@@ -121,10 +121,11 @@ def place_order(good_ids):
             c.execute("""INSERT INTO orders VALUES ("{0}", {1}, {2})"""
                     .format(now, id, amount))
             conn.commit()
-        
-            logging.debug("SUCCESS: for id {} : {} at {} successful".format(id, r.text, now))
-        else:
-            logging.debug("Order for id {} failed. {} at {}".format(id, r.status_code, now))
+
+    if r.status_code == 200:
+        logging.debug("SUCCESS: for id {} : {} at {} successful".format(good_ids, r.text, now))
+    else:
+        logging.debug("Order for id {} failed. {} at {}".format(good_ids, r.status_code, now))
 
     time.sleep(1)
 
