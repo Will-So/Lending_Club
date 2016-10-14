@@ -10,18 +10,20 @@ import pandas as pd
 import numpy as np
 import os
 import warnings
+import feather
 warnings.simplefilter("ignore") # Pandas is setting up annoying filters
 
-DATA_DIR = '/Users/Will/Data/lending_club/'
-PICKLE = True # Add option for Pickle because of categorical variables
+DATA_DIR = '/Users/wsorenson/data_2016/lc/'
+SAVE_TYPE = 'Pickle'# Add option for Pickle because of categorical variables
 
 
 def _main():
     print("Loading Data")
     df = pd.DataFrame()
     for csv in os.listdir(DATA_DIR)[1:]:
-        df = df.append(pd.read_csv(DATA_DIR + csv, header=True))
-    # TODO: Don't want important columns in this workflow
+        df = df.append(pd.read_csv(DATA_DIR + csv, header=1)) ## LC added a 1 line disclaimer on their csv file.
+        print("Loaded file {}".format(csv))
+    # TODO: Don't want important columns in this workflow. Put this in a consants page.
     important_columns = ['total_pymnt', 'zip_code', 'member_id', 'id', 'loan_amnt', 'int_rate',
          'installment', 'emp_length', 'home_ownership', 'grade', 'sub_grade', 'emp_title',
          'issue_d', 'loan_status', 'annual_inc', 'verification_status', 'purpose', 'addr_state',
@@ -37,12 +39,15 @@ def _main():
 
     df = additional_features(df)
 
-    print("Saving to CSV")
-    df.to_csv('../cleaned_df.csv')
-
-    if PICKLE:
+    if SAVE_TYPE == 'Pickle':
         print('saving to pickle')
         df.to_pickle('../cleaned_df.pkl')
+    elif SAVE_TYPE == 'Feather':
+        print('Saving to Feather')
+        raise NotImplementedError("Haven't added feather yet")
+    else:
+        print("Saving to CSV")
+        df.to_csv('../cleaned_df.csv')
 
 
 def clean_columns(df):
