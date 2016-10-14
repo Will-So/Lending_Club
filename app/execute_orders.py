@@ -77,21 +77,26 @@ def _main():
     logging.debug("Placing orders for {} loans \n{} already ordered"
             .format(len(set((good_ids)) - set(already_ordered)), len(already_ordered))) # TODO Consider making a new_orders thing with the set.
 
+    order_ids = []
+    pending_amount = 0
     for id in good_ids:
-        funds_available = has_enough_cash() # Called once to avoid dirty logs
+        funds_available = has_enough_cash(pending_amount) # Called once to avoid dirty logs
         if id not in already_ordered and funds_available:
             count += 1
-            place_order(id)
+            pending_amount += amount
+            order_ids.append(id)
         elif not funds_available:
             logging.debug("No Cash left")
             break
         elif id in already_ordered:
             logging.info("{} Was previously ordered".format(id))
 
+    place_order(order_ids)
+
     logging.debug("Finished Ordering ordered {} notes \n".format(count))
 
 
-def place_order(id):
+def place_order(good_ids):
     """
     Generates the order payload and places an order and appends the ordered loan
     """
@@ -100,11 +105,10 @@ def place_order(id):
 
     payload = {"aid": '{}'.format(investor_id),
                "orders": [
-             {
-                "loanId": '{}'.format(int(id)),
-                "requestedAmount": '{}'.format(amount),
-                "portfolioId": '{}'.format(portfolio_id)
-                }
+                   {"loanId": '{}'.format(int(id)),
+                    "requestedAmount": '{}'.format(amount),
+                    "portfolioId": '{}'.format(portfolio_id)} for id in
+                        good_ids
                 ]}
 
     logging.debug("This is the payload sent: {}".format(payload))
@@ -124,7 +128,7 @@ def place_order(id):
     time.sleep(1)
 
 
-def has_enough_cash():
+def has_enough_cash(pending=0):
     """
     Checks if I currently have money in my lending club account.
     """
@@ -133,7 +137,7 @@ def has_enough_cash():
 
     cash = r.json()['availableCash']
     logging.debug(cash)
-    return True if cash > cash_reserves + amount else False
+    return True if cash - pending > cash_reserves + amount else False
 
 
 # TODO: Get this into a general setup script.
