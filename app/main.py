@@ -22,6 +22,7 @@ import pandas as pd
 
 from flask import Flask, render_template, request
 
+# sys.path.append('..')
 from process_api import generate_completed_df
 
 app = Flask(__name__)
@@ -34,6 +35,7 @@ loans_available = 0
 estimated_roi = 0
 last_checked = 0
 last_submitted = 0
+
 
 
 # @app.route('/')
@@ -84,4 +86,9 @@ def log_to_table(dir):
 
 
 if __name__ == '__main__':
+    print("made to app.run")
     app.run(debug=True)
+
+if __name__ == '__main__' and __package__ is None:
+    from os import sys, path
+    sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
