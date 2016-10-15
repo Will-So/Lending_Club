@@ -32,7 +32,7 @@ print(SQL_DIR)
 # Set Order Settings
 roi_floor = .125
 default_floor = .20
-amount = 25
+amount = 50
 cash_reserves = 0 # Desired level of cash balance
 three_years_only = True
 
@@ -138,7 +138,8 @@ def has_enough_cash(pending=0):
                      .format(investor_id), headers=headers)
 
     cash = r.json()['availableCash']
-    logging.debug(cash)
+    logging.debug(cash - pending)
+
     return True if cash - pending > cash_reserves + amount else False
 
 
