@@ -19,8 +19,8 @@ import logging
 import os
 
 sys.path.append('..')
-import app.config as config
-from app.process_api import generate_completed_df
+import config as config
+from process_api import generate_completed_df
 
 FILE_DIR = os.path.dirname(os.path.realpath(__file__))
 print(FILE_DIR)
@@ -147,7 +147,6 @@ def amount_remaining():
     """
     r = requests.get('https://api.lendingclub.com/api/investor/v1/accounts/{}/availablecash'
                      .format(investor_id), headers=headers)
-
 
     cash = r.json()['availableCash']
 

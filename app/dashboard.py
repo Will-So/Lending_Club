@@ -10,7 +10,7 @@ import sys
 sys.path.append('..')
 from app.process_api import generate_completed_df
 
-from bokeh.plotting import Figure
+from bokeh.plotting import Figure, show, output_server
 from bokeh.models.widgets import Slider, Select
 from bokeh.models import HoverTool, ColumnDataSource, HBox, VBoxForm, Axis
 from bokeh.io import curdoc
