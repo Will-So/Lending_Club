@@ -8,8 +8,8 @@ import logging
 import os
 import sys
 
-sys.path.append('..')
-from app.execute_orders import amount_remaining
+sys.path.append('../app')
+from execute_orders import amount_remaining
 
 logger = logging.getLogger()
 SQL_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__),".."))
