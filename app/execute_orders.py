@@ -133,13 +133,25 @@ def has_enough_cash(pending=0):
     """
     Checks if I currently have money in my lending club account.
     """
-    r = requests.get('https://api.lendingclub.com/api/investor/v1/accounts/{}/availablecash'
-                     .format(investor_id), headers=headers)
+    cash = amount_remaining()
 
-    cash = r.json()['availableCash']
     logging.debug(cash - pending)
 
     return True if cash - pending > cash_reserves + amount else False
+
+
+def amount_remaining():
+    """ Helper function that returns the amount of cash remaining
+
+    :return:
+    """
+    r = requests.get('https://api.lendingclub.com/api/investor/v1/accounts/{}/availablecash'
+                     .format(investor_id), headers=headers)
+
+
+    cash = r.json()['availableCash']
+
+    return cash
 
 
 # TODO: Get this into a general setup script.
