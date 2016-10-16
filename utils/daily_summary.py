@@ -9,31 +9,31 @@ import os
 import sys
 
 sys.path.append('..')
-from app.execute_orders import has_enough_cash
+from app.execute_orders import amount_remaining
 
-
-# Init Logging
-logging.basicConfig(filename='~/logs/daily_summary.log',level=logging.DEBUG,
-                    format='%(asctime)s %(message)s')
-
+logger = logging.getLogger()
 SQL_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__),".."))
 
 
 conn  = sqlite3.connect(os.path.join(SQL_DIR, 'lc.sqlite'))
 c = conn.cursor()
 
-orders_today = """select count(*) from orders where date(date) = date('now')
-"""
+# import pdb; pdb.set_trace()
 
-orders_today = c.execute(orders_today)
+orders_today = """select count(*) from orders where date(date) = date('now')"""
+
+orders_today = c.execute(orders_today).fetchall()[0][0] ## 0th item in the tuple of the 0th item of the list
 
 amount_ordered = """select sum(amount) from orders where date(date) = date('now')
 """
-amount_ordered = c.execute(amount_ordered)
 
-amount_remaining = has_enough_cash()
-logging.info("{} is Remaining".format(amount_ordered))
+amount_ordered = c.execute(amount_ordered).fetchall()[0][0] ## 0th item in the tuple of the 0th item of the list
 
-logging.info("{} orders submitted today".format(orders_today))
+amount_remaining = amount_remaining()
+logger.info("{} is Remaining".format(amount_remaining))
 
-logging.info("{}$ amount ordered".format(orders_today))
+logger.info("{} orders submitted today".format(orders_today))
+
+logger.info("{}$ amount ordered".format(amount_ordered))
+
+print(orders_today, amount_ordered, amount_remaining)
