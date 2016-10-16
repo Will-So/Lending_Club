@@ -10,7 +10,6 @@ TODO:
     - Change debug to be module wide
     - Add a cash reserves option
 """
-
 import sqlite3
 import sys
 import arrow
@@ -20,8 +19,8 @@ import logging
 import os
 
 sys.path.append('..')
-import config
-from process_api import generate_completed_df
+import app.config as config
+from app.process_api import generate_completed_df
 
 FILE_DIR = os.path.dirname(os.path.realpath(__file__))
 print(FILE_DIR)
