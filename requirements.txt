@@ -1,9 +1,8 @@
 flask
 patsy
-sys
 arrow
-sqlite3
 requests
 numpy
 pandas
 sklearn
+scipy

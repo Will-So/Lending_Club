@@ -23,3 +23,15 @@ You need to be registered on the Lending Club site in order to use the lending c
 My app expects the name of the environmental variable to be `LENDING_CLUB_API`.
 
 
+# Starting the dashboard app
+bokeh serve --show app
+
+# Notes on relative imports
+It seems like it is going to be a better idea to handle things
+
+# Restructuring this app
+The API here was somewhat ill-planned. This should be turned into a library that accesses multiple things and has a nice API that will
+perform various operations (orders, show current notes, and
+
+# Refresh TImes
+ 2AM, 6AM, 10AM and 2 PM

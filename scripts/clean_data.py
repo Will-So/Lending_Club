@@ -15,6 +15,7 @@ warnings.simplefilter("ignore") # Pandas is setting up annoying filters
 
 DATA_DIR = '/Users/wsorenson/data_2016/lc/'
 SAVE_TYPE = 'Pickle'# Add option for Pickle because of categorical variables
+SAVE_DIR = os.path.join(DATA_DIR, 'processed')
 
 
 def _main():
@@ -41,13 +42,13 @@ def _main():
 
     if SAVE_TYPE == 'Pickle':
         print('saving to pickle')
-        df.to_pickle('../cleaned_df.pkl')
+        df.to_pickle(os.path.join(SAVE_DIR, 'cleaned_df.pkl'))
     elif SAVE_TYPE == 'Feather':
         print('Saving to Feather')
         raise NotImplementedError("Haven't added feather yet")
     else:
         print("Saving to CSV")
-        df.to_csv('../cleaned_df.csv')
+        df.to_csv(os.path.join(SAVE_DIR, 'cleaned_df.csv'))
 
 
 def clean_columns(df):
