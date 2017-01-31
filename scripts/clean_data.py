@@ -1,4 +1,3 @@
-# coding=utf-8
 """
 Loads all lending Club CSV Files, Cleans the data for future analysis,
 adds some features and then saves it to csv and optionally pickle.
@@ -18,12 +17,13 @@ SAVE_TYPE = 'Pickle'# Add option for Pickle because of categorical variables
 # SAVE_DIR = os.path.join(DATA_DIR, 'processed')
 DATA_DIR = '/Volumes/base/data/lc_data/'
 SAVE_DIR = os.path.join(DATA_DIR, 'processed')
-
+FILTER_DATE = '2014-09-01' # This is the date that we want to consider when filtering the results.
 
 def _main():
     print("Loading Data")
     df = pd.DataFrame()
     # TODO This should check to only open proper csv files
+    # TODO not reading all files for some reason
     for csv in os.listdir(DATA_DIR)[:-1]:
         df = df.append(pd.read_csv(DATA_DIR + csv, header=1)) ## LC added a 1 line disclaimer on their csv file.
         print("Loaded file {}".format(csv))
@@ -92,7 +92,7 @@ def clean_columns(df):
     df.earliest_cr_line = pd.to_datetime(df.earliest_cr_line)
     df.last_credit_pull_d = pd.to_datetime(df.last_credit_pull_d)
 
-    df = df[df.issue_d < '2014-09-01'] # See (1) in methodology
+    df = df[df.issue_d < FILTER_DATE] # See (1) in methodology
 
     df.verification_status = df.verification_status.replace({'VERIFIED - income': 1,
                                 'VERIFIED - income source': 1, 'not verified': 0 })
