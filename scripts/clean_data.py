@@ -13,17 +13,21 @@ import warnings
 import feather
 warnings.simplefilter("ignore") # Pandas is setting up annoying filters
 
-DATA_DIR = '/Users/wsorenson/data_2016/lc/'
+# DATA_DIR = '/Users/wsorenson/data_2016/lc/'
 SAVE_TYPE = 'Pickle'# Add option for Pickle because of categorical variables
+# SAVE_DIR = os.path.join(DATA_DIR, 'processed')
+DATA_DIR = '/Volumes/base/data/lc_data/'
 SAVE_DIR = os.path.join(DATA_DIR, 'processed')
 
 
 def _main():
     print("Loading Data")
     df = pd.DataFrame()
-    for csv in os.listdir(DATA_DIR)[1:]:
+    # TODO This should check to only open proper csv files
+    for csv in os.listdir(DATA_DIR)[:-1]:
         df = df.append(pd.read_csv(DATA_DIR + csv, header=1)) ## LC added a 1 line disclaimer on their csv file.
         print("Loaded file {}".format(csv))
+
     # TODO: Don't want important columns in this workflow. Put this in a consants page.
     important_columns = ['total_pymnt', 'zip_code', 'member_id', 'id', 'loan_amnt', 'int_rate',
          'installment', 'emp_length', 'home_ownership', 'grade', 'sub_grade', 'emp_title',
