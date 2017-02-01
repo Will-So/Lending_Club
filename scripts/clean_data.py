@@ -34,7 +34,7 @@ def _main():
          'issue_d', 'loan_status', 'annual_inc', 'verification_status', 'purpose', 'addr_state',
          'inq_last_6mths', 'dti', 'revol_util', 'mths_since_last_delinq','pub_rec', 'revol_bal',
          'open_acc', 'collections_12_mths_ex_med', 'delinq_2yrs', 'earliest_cr_line',
-         'fico_range_low', 'last_credit_pull_d']
+         'fico_range_low', 'last_credit_pull_d', 'term']
 
     df = df[important_columns]
 
@@ -93,6 +93,10 @@ def clean_columns(df):
     df.last_credit_pull_d = pd.to_datetime(df.last_credit_pull_d)
 
     df = df[df.issue_d < FILTER_DATE] # See (1) in methodology
+
+    # Turn the term into strings of the duration
+    df = df[df.term.notnull()]
+    df.term.str.extract('(\d+)').astype('int')
 
     df.verification_status = df.verification_status.replace({'VERIFIED - income': 1,
                                 'VERIFIED - income source': 1, 'not verified': 0 })
