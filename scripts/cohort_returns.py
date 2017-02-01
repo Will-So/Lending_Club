@@ -13,6 +13,7 @@ Situation
 from scripts.clean_data import SAVE_DIR, SAVE_TYPE
 from collections import defaultdict
 import pickle
+import numpy as np
 
 import pandas as pd
 
@@ -23,16 +24,18 @@ def _main():
     df = load_data()
     df = get_quarterly_periods(df)
     categories = df.bin.cat.categories # We need these categories in future
-    samples = sample_values(df)
+    samples = sample_values(df, term=3)
+
     if SAVE:
         save_samples(samples, SAVE_DIR)
 
     del df # All the data needed is in samples
-    returns =
-    if SAVE:
-        pickle.dump(returns, open(SAVE_DIR + 'returns.pkl', 'wb'))
+    total_returns, roi_dict = consolidate_returns(samples, term=3)
 
-    average_returns =
+    if SAVE:
+        pickle.dump(roi_dict, open(SAVE_DIR + 'all_returns.pkl', 'wb'))
+        pickle.dump(total_returns, open(SAVE_DIR + 'consolidated_returns.pkl', 'wb'))
+
 
 
 
@@ -69,7 +72,7 @@ def get_quarterly_periods(df):
     return df
 
 
-def sample_values(df):
+def sample_values(df, term=None):
     """
     Create a sample of 250 notes for every cohort. Takes about 2 minutes
     to run on a 2015 macbook pro
@@ -82,9 +85,14 @@ def sample_values(df):
     num_simulations = 100
     for cat in df.bin.cat.categories:
         for simulation in range(num_simulations):
+            if term:
+                df = df.query('term == @term')
+
             sample_df = df.query('bin == @cat')
             sample_df = sample_df.sample(400, replace=False)
             samples[cat][simulation] = sample_df
+
+    return samples
 
 
 def save_samples(samples, save_dir):
@@ -105,4 +113,44 @@ def tree():
     """
     return defaultdict(tree)
 
-def calculate_roi(samples):
+
+def calculate_roi(df, term=3):
+    """
+    Calculate the return rate according to the following formula
+
+    $$ \frac{total\_pymnt - loan\_amnt}{loan\_amnt} * \frac{1}{term} $$
+
+
+    :param term: the term that all of the loans belong in
+    :param df: dataframe to calculate total return
+    :return: roi for the entire sample
+    """
+    assert df.term.mean() == term
+    total_payment = df.total_pymnt.sum()
+    total_loan_amount = df.loan_amnt.sum()
+    total_roi = ((total_payment - total_loan_amount) / total_loan_amount) * (1 / term)
+
+    return total_roi
+
+
+def consolidate_returns(samples, term):
+    """
+
+    :param samples:
+    :return: total_roi, a dict of the average roi of each cohort.
+             roi_dict, all individual ROI values. Good for sampling the values
+    """
+    roi_dict = tree() # This is here mostly for debugging
+    total_roi = dict() # This is the value we're interested in and actually going to return
+
+    # Get the ROI for each value
+    for cohort in samples.keys():
+        for sample in cohort.keys():
+            roi_dict[cohort][sample] = calculate_roi(samples[cohort][sample], term)
+        cohort_average = np.mean([roi_dict[cohort][i] for i
+                                    in roi_dict[cohort].keys()])
+        total_roi[cohort] = cohort_average
+
+    return total_roi, roi_dict
+
+
