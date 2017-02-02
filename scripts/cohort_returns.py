@@ -21,13 +21,17 @@ from collections import defaultdict
 
 
 SAVE = False
+LOAD = True
 
 
 def _main():
     df = load_data()
     df = get_quarterly_periods(df)
     categories = df.bin.cat.categories # We need these categories in future
-    samples = sample_values(df, term=3)
+    if LOAD:
+        load_samples(SAVE_DIR + 'samples.pkl')
+    else:
+        samples = sample_values(df, term=36)
 
     if SAVE:
         save_samples(samples, SAVE_DIR)
@@ -48,7 +52,7 @@ def load_data():
     :return: dataframe
     """
     df = pd.read_pickle(SAVE_DIR + '/cleaned_df.pkl')
-    df = df.query('int_rate > .16').query('term == 3')
+    df = df.query('int_rate > .16').query('term == 36')
 
     return df
 
@@ -127,7 +131,7 @@ def tree():
     return defaultdict(tree)
 
 
-def calculate_roi(df, term=3):
+def calculate_roi(df, term=36):
     """
     Calculate the return rate according to the following formula
 
@@ -141,7 +145,7 @@ def calculate_roi(df, term=3):
     assert df.term.mean() == term
     total_payment = df.total_pymnt.sum()
     total_loan_amount = df.loan_amnt.sum()
-    total_roi = ((total_payment - total_loan_amount) / total_loan_amount) * (1 / term)
+    total_roi = ((total_payment - total_loan_amount) / total_loan_amount) * (1 / (term / 12)) # 12 for the number of years
 
     return total_roi
 
