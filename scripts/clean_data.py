@@ -19,6 +19,7 @@ DATA_DIR = '/Volumes/base/data/lc_data/'
 SAVE_DIR = os.path.join(DATA_DIR, 'processed')
 FILTER_DATE = '2014-09-01' # This is the date that we want to consider when filtering the results.
 
+
 def _main():
     print("Loading Data")
     df = pd.DataFrame()
@@ -71,10 +72,11 @@ def clean_columns(df):
     df = df[~df.id.str.contains('[A-z]', na=False)] # Remove ids with words
     df['id'] = df.id.astype(int)
 
-    # Change employment length to inits.
+    # Change employment length to inits
     df.emp_length = df.emp_length.replace({'10+ years': 20, '< 1 year': 0, '1 year': 1})
     df.emp_length = df.emp_length.replace({'{} years'.format(i): i
                                            for i in range(1,10)})
+
     df.emp_length = df.emp_length.replace({'n/a': np.nan})
 
     df.int_rate = df.int_rate.str.replace('%', '').astype(float) / 100
@@ -92,11 +94,12 @@ def clean_columns(df):
     df.earliest_cr_line = pd.to_datetime(df.earliest_cr_line)
     df.last_credit_pull_d = pd.to_datetime(df.last_credit_pull_d)
 
-    df = df[df.issue_d < FILTER_DATE] # See (1) in methodology
+    if FILTER_DATE: # We may not always want to get rid of items
+        df = df[df.issue_d < FILTER_DATE] # See (1) in methodology
 
     # Turn the term into strings of the duration
     df = df[df.term.notnull()]
-    df.term.str.extract('(\d+)').astype('int')
+    df.term = df.term.str.extract('(\d+)').astype('int')
 
     df.verification_status = df.verification_status.replace({'VERIFIED - income': 1,
                                 'VERIFIED - income source': 1, 'not verified': 0 })
