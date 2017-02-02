@@ -10,12 +10,15 @@ Situation
 - Sample notes by quarter N times (100 is probably sufficient)
 """
 
-from scripts.clean_data import SAVE_DIR, SAVE_TYPE
-from collections import defaultdict
+import sys
+sys.path.append('..')
 import pickle
 import numpy as np
-
 import pandas as pd
+
+from .clean_data import SAVE_DIR, SAVE_TYPE
+from collections import defaultdict
+
 
 SAVE = False
 
@@ -45,9 +48,19 @@ def load_data():
     :return: dataframe
     """
     df = pd.read_pickle(SAVE_DIR + '/cleaned_df.pkl')
-    df = df.query('int_rate > .16')
+    df = df.query('int_rate > .16').query('term == 3')
 
     return df
+
+
+def load_samples(save_dir):
+    """
+    Loads the dictionary of samples that was previous saved
+
+    :return: samples; dict of dataframes
+    """
+
+    return pickle.load(open(save_dir) + 'samples.pkl', 'r')
 
 
 def get_quarterly_periods(df):
