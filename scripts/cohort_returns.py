@@ -16,7 +16,7 @@ import pickle
 import numpy as np
 import pandas as pd
 
-from .clean_data import SAVE_DIR, SAVE_TYPE
+from scripts.clean_data import SAVE_DIR, SAVE_TYPE
 from collections import defaultdict
 
 
@@ -25,16 +25,17 @@ LOAD = True
 
 
 def _main():
-    df = load_data()
+    df = load_data(term=36)
     df = get_quarterly_periods(df)
+    df.bin = df.bin.cat.remove_unused_categories()
     categories = df.bin.cat.categories # We need these categories in future
     if LOAD:
-        load_samples(SAVE_DIR + 'samples.pkl')
+        samples = load_samples(SAVE_DIR)
     else:
         samples = sample_values(df, term=36)
 
-    if SAVE:
-        save_samples(samples, SAVE_DIR)
+        if SAVE: # Only want to save samples if we computed them again
+            save_samples(samples, SAVE_DIR)
 
     del df # All the data needed is in samples
     total_returns, roi_dict = consolidate_returns(samples, term=3)
@@ -46,13 +47,15 @@ def _main():
 
 
 
-def load_data():
+def load_data(term):
     """
 
     :return: dataframe
     """
     df = pd.read_pickle(SAVE_DIR + '/cleaned_df.pkl')
-    df = df.query('int_rate > .16').query('term == 36')
+    if term:
+        df = df.query('term == @term')
+    df = df.query('int_rate > .16')
 
     return df
 
@@ -64,7 +67,7 @@ def load_samples(save_dir):
     :return: samples; dict of dataframes
     """
 
-    return pickle.load(open(save_dir) + 'samples.pkl', 'r')
+    return pickle.load(open(save_dir + 'samples.pkl', 'rb'))
 
 
 def get_quarterly_periods(df):
@@ -107,6 +110,7 @@ def sample_values(df, term=None):
 
             sample_df = df.query('bin == @cat')
             sample_df = sample_df.sample(400, replace=False)
+
             samples[cat][simulation] = sample_df
 
     return samples
@@ -142,7 +146,7 @@ def calculate_roi(df, term=36):
     :param df: dataframe to calculate total return
     :return: roi for the entire sample
     """
-    assert df.term.mean() == term
+    assert int(df.term.mean()) == term
     total_payment = df.total_pymnt.sum()
     total_loan_amount = df.loan_amnt.sum()
     total_roi = ((total_payment - total_loan_amount) / total_loan_amount) * (1 / (term / 12)) # 12 for the number of years
@@ -162,7 +166,8 @@ def consolidate_returns(samples, term):
 
     # Get the ROI for each value
     for cohort in samples.keys():
-        for sample in cohort.keys():
+        for sample in samples[cohort].keys():
+            print(cohort, '\t', sample)
             roi_dict[cohort][sample] = calculate_roi(samples[cohort][sample], term)
         cohort_average = np.mean([roi_dict[cohort][i] for i
                                     in roi_dict[cohort].keys()])
